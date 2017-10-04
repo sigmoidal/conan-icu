@@ -3,12 +3,13 @@ linux: &linux
    sudo: required
    language: python
    python: "3.6"
-   services:
-     - docker
    env:
      matrix:
         - CONAN_ICU_SHARED: True
         - CONAN_ICU_SHARED: False
+   services:
+     - docker
+
 
 osx: &osx
    os: osx
