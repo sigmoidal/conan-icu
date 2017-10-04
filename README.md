@@ -1,3 +1,3 @@
 # conan-icu
 
-Testing conan-built ICU
+Testing conan-built ICU for bincrafters
