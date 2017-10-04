@@ -9,6 +9,7 @@ linux: &linux
      matrix:
         - CONAN_ICU_SHARED: True
         - CONAN_ICU_SHARED: False
+
 osx: &osx
    os: osx
    language: generic
