@@ -5,15 +5,16 @@ linux: &linux
    python: "3.6"
    services:
       - docker
+   env:
+      matrix:
+         - CONAN_ICU_SHARED: True
+         - CONAN_ICU_SHARED: False
 
 osx: &osx
    os: osx
    language: generic
 
-env:
-    matrix:
-      - CONAN_ICU_SHARED: True
-      - CONAN_ICU_SHARED: False
+
 
 
 matrix:
