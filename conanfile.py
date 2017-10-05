@@ -355,11 +355,24 @@ class IcuConan(ConanFile):
     def package_info(self):
         self.cpp_info.libs = []
         vtag = self.version.split('.')[0]
+        keep = False
         for lib in tools.collect_libs(self):
             if not vtag in lib:
-                self.cpp_info.libs.append(lib)
+                self.output.info("OUTPUT LIBRARY: " + lib)
+                if lib != 'icudata':
+                    self.cpp_info.libs.append(lib)
+                else:
+                    keep = True
+
+        # if icudata is not last, it fails to build (is that true?)
+        if keep:
+            self.cpp_info.libs.append('icudata')
 
         self.env_info.path.append(os.path.join(self.package_folder, "bin"))
 
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
+
+            if self.settings.os == 'Linux':
+                #self.cpp_info.exelinkflags.append("-L{0}".format(os.path.join(self.package_folder, "share", "icu", "59.1")))
+                self.cpp_info.libs.append('dl')
