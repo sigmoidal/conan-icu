@@ -52,16 +52,14 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
-               "with_unit_tests": [True, False],
-               "python": "ANY"}
+               "with_unit_tests": [True, False]}
 
     default_options = "with_io=False", \
                       "with_data=False", \
                       "shared=True", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
-                      "with_unit_tests=False", \
-                      "python=python"
+                      "with_unit_tests=False"
 
     def source(self):
         archive_type = "zip"
