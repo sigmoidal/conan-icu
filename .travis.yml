@@ -15,21 +15,32 @@ osx: &osx
 
 jobs:
    include:
-      - stage: shared
+      - stage: linux
         <<: *linux
         env:
            - CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 CONAN_ICU_SHARED=True
            - CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 CONAN_ICU_SHARED=False
+        install:
+           - chmod +x .travis/install.sh
+           - ./.travis/install.sh
+        script:
+           - chmod +x .travis/run.sh
+           - ./.travis/run.sh
+
+      - stage: mac osx
+        <<: *osx
+        env:
+           - CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_ICU_SHARED=True
+           - CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_ICU_SHARED=False
+        install:
+           - chmod +x .travis/install.sh
+           - ./.travis/install.sh
+        script:
+           - chmod +x .travis/run.sh
+           - ./.travis/run.sh
         #<<: *osx
         #osx_image: xcode8.3
         #- env: CONAN_APPLE_CLANG_VERSIONS=8.1
 
       #- stage: static
 
-install:
-   - chmod +x .travis/install.sh
-   - ./.travis/install.sh
-
-script:
-   - chmod +x .travis/run.sh
-   - ./.travis/run.sh
