@@ -46,21 +46,21 @@ matrix:
         env: CONAN_APPLE_CLANG_VERSIONS=7.3 CONAN_ICU_SHARED=True
       - <<: *osx
         osx_image: xcode7.3
-        env: CONAN_APPLE_CLANG_VERSIONS=7.3 CONAN_ICU_SHARED=True
+        env: CONAN_APPLE_CLANG_VERSIONS=7.3 CONAN_ICU_SHARED=False
 
       - <<: *osx
         osx_image: xcode8.2
         env: CONAN_APPLE_CLANG_VERSIONS=8.0 CONAN_ICU_SHARED=True
       - <<: *osx
         osx_image: xcode8.2
-        env: CONAN_APPLE_CLANG_VERSIONS=8.0 CONAN_ICU_SHARED=True
+        env: CONAN_APPLE_CLANG_VERSIONS=8.0 CONAN_ICU_SHARED=False
 
       - <<: *osx
         osx_image: xcode8.3
         env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_ICU_SHARED=True
       - <<: *osx
         osx_image: xcode8.3
-        env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_ICU_SHARED=True
+        env: CONAN_APPLE_CLANG_VERSIONS=8.1 CONAN_ICU_SHARED=False
 
 
 install:
