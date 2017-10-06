@@ -28,13 +28,18 @@ import shutil
 #   
 #    conan create cygwin/icu -o icu:msvc_platform=cygwin -o icu:shared=False -e CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin
 #
-# Create an ICU package using a Cygwin/MSYS static debug built
+# Create an ICU package using a Cygwin/MSVC static debug built
 #   
 #    conan create cygwin/icu -o icu:msvc_platform=cygwin -s icu:build_type=Debug -o icu:shared=False
 #
 # Create an ICU package using a Cygwin/MSYS static debug built
 #   
 #    conan create msys/icu -o icu:msvc_platform=msys -o icu:with_data=True -e MSYS_ROOT=D:\dev\msys64
+#
+#
+# Create an ICU package using a Cygwin/MSVC static debug built with static runtimes
+#
+#    conan create cygwin/icu -o icu:msvc_platform=cygwin -o icu:shared=False  -s compiler.runtime=MTd -s build_type=Debug -e CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin
 #
 
 class IcuConan(ConanFile):
@@ -168,6 +173,13 @@ class IcuConan(ConanFile):
                 src_path = src_path.replace('\\', '/')
                 output_path = output_path.replace('\\', '/')
 
+                configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
+                runtime = self.settings.compiler.runtime
+                if self.settings.build_type == 'Release':
+                    tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
+                if self.settings.build_type == 'Debug':
+                    tools.replace_in_file(configfile, "-MDd", "-%s" % runtime)
+
                 b_path = os.path.join(root_path, self.name, 'build')
                 os.mkdir(b_path)
                 self.output.info("Starting configuration.")
@@ -217,6 +229,13 @@ class IcuConan(ConanFile):
                 root_path = root_path.replace('\\', '/')
                 src_path = src_path.replace('\\', '/')
                 output_path = output_path.replace('\\', '/')
+
+                configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
+                runtime = self.settings.compiler.runtime
+                if self.settings.build_type == 'Release':
+                    tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
+                if self.settings.build_type == 'Debug':
+                    tools.replace_in_file(configfile, "-MDd", "-%s -FS" % runtime)
 
                 b_path = os.path.join(root_path, self.name, 'build')
                 b_path = b_path.replace('\\', '/')
