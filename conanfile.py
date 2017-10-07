@@ -187,7 +187,7 @@ class IcuConan(ConanFile):
                         vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
                 self.output.info("Starting built.")
                 # do not use multiple CPUs with make (make -j X) as builds fail on Cygwin
-                self.run("{0} && cd {1} && make".format(vcvars_command, b_path))
+                self.run("{0} && cd {1} && make --silent".format(vcvars_command, b_path))
                 if self.options.with_unit_tests:
                     self.run("{0} && cd {1} && make check".format(vcvars_command, b_path))
                 self.run("{0} && cd {1} && make install".format(vcvars_command, b_path))
@@ -256,7 +256,7 @@ class IcuConan(ConanFile):
                 escapesrc_patch = os.path.join(root_path, self.name,'source','tools','Makefile.in')
                 tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
+                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
                 if self.options.with_unit_tests:
                     self.run("{0} && bash -c ^'cd {1} ^&^& make check".format(vcvars_command, b_path))
 
@@ -306,7 +306,7 @@ class IcuConan(ConanFile):
 
                 self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} --disable-layout --disable-layoutex".format(
                     b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
-                self.run("cd {0} && make -j {1} install".format(b_path, tools.cpu_count()))
+                self.run("cd {0} && make --silent -j {1} install".format(b_path, tools.cpu_count()))
 
                 if self.settings.os == 'Macos':
                     with tools.chdir('output/lib'):

@@ -1,11 +1,12 @@
 build: off
 
+# Attention: ICU > 59.1 does no longer support compilers older than VS 2015
 image:
 #  - Visual Studio 2015
   - Visual Studio 2017
 
 platform:
-#  - x86
+  #- x86
   - x64
 
 configuration:
@@ -21,18 +22,17 @@ environment:
     MSYS_ROOT: "C:\\msys64"
 
     matrix:
-        # Attention: ICU > 59.1 does no longer support compilers older than VS 2015
         - CONAN_ICU_MSVC_PLATFORM: cygwin
           CONAN_ICU_SHARED: True
 
         - CONAN_ICU_MSVC_PLATFORM: cygwin
           CONAN_ICU_SHARED: False
 
-        - CONAN_ICU_MSVC_PLATFORM: msys
-          CONAN_ICU_SHARED: True
+        #- CONAN_ICU_MSVC_PLATFORM: msys
+        #  CONAN_ICU_SHARED: True
 
-        - CONAN_ICU_MSVC_PLATFORM: msys
-          CONAN_ICU_SHARED: False
+        #- CONAN_ICU_MSVC_PLATFORM: msys
+        #  CONAN_ICU_SHARED: False
 
 #init:
 #  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
