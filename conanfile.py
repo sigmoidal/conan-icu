@@ -301,8 +301,8 @@ class IcuConan(ConanFile):
         #self.options.shared = False
 
         if self.settings.os == 'Windows':
+            bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
             if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys':
-
                 if self.options.msvc_platform == 'cygwin':
                     platform = 'Cygwin/MSVC'
 
@@ -320,9 +320,7 @@ class IcuConan(ConanFile):
                 self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
                 self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
                 self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
-                
             else:
-                bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
                 include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in ('include', bin_dir, lib_dir))
                 self.output.info('include_dir = {0}'.format(include_dir))
                 self.output.info('bin_dir = {0}'.format(bin_dir))
