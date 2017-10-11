@@ -27,9 +27,10 @@ class ICUTestConan(ConanFile):
         cmake.build()
 
     def imports(self):
-        self.copy("*.dll", dst="bin", src="lib")
-        self.copy("*.dylib*", dst="bin", src="lib")
-        self.copy('*.so*', dst='bin', src='lib')
+        lib_dir_src = 'lib64' if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else 'lib'
+        self.copy("*.dll", dst="bin", src=lib_dir_src)
+        self.copy("*.dylib*", dst="bin", src=lib_dir_src)
+        self.copy('*.so*', dst='bin', src=lib_dir_src)
 
     def test(self):
         bin_dir = os.path.join(os.getcwd(), "bin")

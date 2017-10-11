@@ -56,7 +56,7 @@ class IcuConan(ConanFile):
 
     default_options = "with_io=False", \
                       "with_data=False", \
-                      "shared=True", \
+                      "shared=False", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
                       "with_unit_tests=False"
@@ -175,10 +175,10 @@ class IcuConan(ConanFile):
                         vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
                 self.output.info("Starting built.")
                 # do not use multiple CPUs with make (make -j X) as builds fail on Cygwin
-                self.run("{0} && cd {1} && make".format(vcvars_command, b_path))
+                self.run("{0} && cd {1} && make --silent".format(vcvars_command, b_path))
                 if self.options.with_unit_tests:
                     self.run("{0} && cd {1} && make check".format(vcvars_command, b_path))
-                self.run("{0} && cd {1} && make install".format(vcvars_command, b_path))
+                self.run("{0} && cd {1} && make --silent install".format(vcvars_command, b_path))
             elif self.options.msvc_platform == 'msys':
                 platform = 'MSYS/MSVC'
                 
@@ -237,11 +237,11 @@ class IcuConan(ConanFile):
                 escapesrc_patch = os.path.join(root_path, self.name,'source','tools','Makefile.in')
                 tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
+                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
                 if self.options.with_unit_tests:
-                    self.run("{0} && bash -c ^'cd {1} ^&^& make check".format(vcvars_command, b_path))
+                    self.run("{0} && bash -c ^'cd {1} ^&^& make --silent check".format(vcvars_command, b_path))
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make install'".format(vcvars_command, b_path))
+                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent install'".format(vcvars_command, b_path))
             else:
                 sln_file = os.path.join(src_path,"allinone","allinone.sln")
                 targets = ["i18n","common","pkgdata"]
@@ -301,7 +301,7 @@ class IcuConan(ConanFile):
         #self.options.shared = False
 
         if self.settings.os == 'Windows':
-            bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
+            bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
             if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys':
                 if self.options.msvc_platform == 'cygwin':
                     platform = 'Cygwin/MSVC'
@@ -316,9 +316,11 @@ class IcuConan(ConanFile):
                 self.output.info('share_dir = {0}'.format(share_dir))
                 
                 # we copy everything for a full ICU package
-                self.copy("*", dst="bin", src=bin_dir, keep_path=True, symlinks=True)
+                self.copy("*", dst=bin_dir_dst, src=bin_dir, keep_path=True, symlinks=True)
+                self.copy(pattern='*.dll', dst=bin_dir_dst, src=lib_dir, keep_path=False)
+                
                 self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
-                self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
+                self.copy("*", dst=lib_dir_dst, src=lib_dir, keep_path=True, symlinks=True)
                 self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
             else:
                 include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in ('include', bin_dir, lib_dir))
@@ -350,13 +352,27 @@ class IcuConan(ConanFile):
             self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
             self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
 
+    def package_id(self):
+        # Whether we built with Cygwin or MSYS shouldn't affect the package id
+        if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys":
+            self.info.options.msvc_platform = "cygwin/msys"
+
+        # ICU unit testing shouldn't affect the package's ID
+        self.info.options.with_unit_tests = "any"
+            
     def package_info(self):
+    
+        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin' , 'lib')
+        
+        self.cpp_info.libdirs = [ lib_dir ]
+        
         self.cpp_info.libs = []
         vtag = self.version.split('.')[0]
         keep = False
-        for lib in tools.collect_libs(self):
+            
+        for lib in tools.collect_libs(self, lib_dir):
             if not vtag in lib:
-                self.output.info("OUTPUT LIBRARY: " + lib)
+                #self.output.info("OUTPUT LIBRARY: " + lib)
                 if lib != 'icudata':
                     self.cpp_info.libs.append(lib)
                 else:
@@ -366,7 +382,8 @@ class IcuConan(ConanFile):
         if keep:
             self.cpp_info.libs.append('icudata')
 
-        self.env_info.path.append(os.path.join(self.package_folder, "bin"))
+        self.env_info.PATH.append(os.path.join(self.package_folder, bin_dir))
+        self.env_info.PATH.append(os.path.join(self.package_folder, 'bin'))
 
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
