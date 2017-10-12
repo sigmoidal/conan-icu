@@ -52,14 +52,16 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
-               "with_unit_tests": [True, False]}
+               "with_unit_tests": [True, False],
+               "silent": [True, False]}
 
     default_options = "with_io=False", \
                       "with_data=False", \
                       "shared=False", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
-                      "with_unit_tests=False"
+                      "with_unit_tests=False", \
+                      "silent=True"
 
     def source(self):
         archive_type = "zip"
@@ -115,16 +117,16 @@ class IcuConan(ConanFile):
 
         # This handles the weird case of using ICU sources for Windows on a Unix environment, and vice-versa
         # this is primarily aimed at builds using Cygwin/MSVC which require unix line endings
-        if self.settings.os != 'Windows' or self.options.msvc_platform != 'visual_studio':
-            if b'\r\n' in open(os.path.join(src_path, "runConfigureICU"), 'rb').read():
-                self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. \
-                                   \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n")
-                return
-        else:
+        if self.settings.os == 'Windows' and self.options.msvc_platform == 'visual_studio':
             if b'\r\n' not in open(os.path.join(src_path, "runConfigureICU"), 'rb').read():
-                self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. \
-                                   \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n")
+                self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. {0} / {1} \
+                                   \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
                 return
+        #else:
+        #    if b'\r\n' not in open(os.path.join(src_path, "runConfigureICU"), 'rb').read():
+        #        self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. {0} / {1} \
+        #                           \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
+        #        return
                 
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
@@ -134,6 +136,7 @@ class IcuConan(ConanFile):
                 arch = '64' if self.settings.arch == 'x86_64' else '32'
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
                 enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
+                silent = '--silent' if self.options.silent else ''
                 data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
 
                 if not self.options.shared:
@@ -175,10 +178,10 @@ class IcuConan(ConanFile):
                         vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
                 self.output.info("Starting built.")
                 # do not use multiple CPUs with make (make -j X) as builds fail on Cygwin
-                self.run("{0} && cd {1} && make --silent".format(vcvars_command, b_path))
+                self.run("{vcenv} && cd {build_path} && make {silent_var}".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
                 if self.options.with_unit_tests:
-                    self.run("{0} && cd {1} && make check".format(vcvars_command, b_path))
-                self.run("{0} && cd {1} && make --silent install".format(vcvars_command, b_path))
+                    self.run("{vcenv} && cd {build_path} && make {silent_var} check".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
+                self.run("{vcenv} && cd {build_path} && make {silent_var} install".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
             elif self.options.msvc_platform == 'msys':
                 platform = 'MSYS/MSVC'
                 
@@ -186,7 +189,8 @@ class IcuConan(ConanFile):
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
                 enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
                 data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
-                                
+                silent = '--silent' if self.options.silent else ''
+                    
                 if not self.options.shared:
                     self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
                 
@@ -216,14 +220,21 @@ class IcuConan(ConanFile):
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
                 src_path = src_path.replace('\\', '/')
-                output_path = output_path.replace('\\', '/')
+                output_path = tools.unix_path(output_path)
+                #output_path.replace('\\', '/')
 
                 b_path = os.path.join(root_path, self.name, 'build')
                 b_path = b_path.replace('\\', '/')
                 os.mkdir(b_path)
 
                 apply_msys_config_detection_patch = '--host=i686-pc-mingw{0}'.format(arch)
-
+                
+                # If you enable the stuff below => builds may start to stall when building x86/static/Debug
+                #env_build = AutoToolsBuildEnvironment(self)
+                #if self.settings.build_type == 'Debug':
+                #    env_build.cxx_flags.append("-FS")
+                    
+                #with tools.environment_append(env_build.vars):                    
                 self.run("{0} && bash -c ^'cd {1} ^&^& ../source/runConfigureICU {2} {3} {4} --with-library-bits={5} --prefix={6} {7} {8} --disable-layout --disable-layoutex^'".format(vcvars_command, b_path, enable_debug, platform, apply_msys_config_detection_patch, arch, output_path, enable_static, data_packaging))
 
                 # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:
@@ -237,11 +248,13 @@ class IcuConan(ConanFile):
                 escapesrc_patch = os.path.join(root_path, self.name,'source','tools','Makefile.in')
                 tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
+                cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
+                
+                self.run("{vcenv} && bash -c ^'cd {build_path} ^&^& make {silent_var} -j {cpus_var}".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent, cpus_var=cpus))
                 if self.options.with_unit_tests:
-                    self.run("{0} && bash -c ^'cd {1} ^&^& make --silent check".format(vcvars_command, b_path))
+                    self.run("{vcenv} && bash -c ^'cd {build_path} ^&^& make {silent_var} check".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent install'".format(vcvars_command, b_path))
+                self.run("{vcenv} && bash -c ^'cd {build_path} ^&^& make {silent_var} install'".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
             else:
                 sln_file = os.path.join(src_path,"allinone","allinone.sln")
                 targets = ["i18n","common","pkgdata"]
@@ -302,7 +315,7 @@ class IcuConan(ConanFile):
 
         if self.settings.os == 'Windows':
             bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
-            if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys':
+            if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys' or self.options.msvc_platform == 'any':
                 if self.options.msvc_platform == 'cygwin':
                     platform = 'Cygwin/MSVC'
 
@@ -310,10 +323,10 @@ class IcuConan(ConanFile):
                     platform = 'MSYS/MSVC'
 
                 bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in ('bin', 'include', 'lib', 'share'))
-                self.output.info('bin_dir = {0}'.format(bin_dir))
-                self.output.info('include_dir = {0}'.format(include_dir))
-                self.output.info('lib_dir = {0}'.format(lib_dir))
-                self.output.info('share_dir = {0}'.format(share_dir))
+                #self.output.info('bin_dir = {0}'.format(bin_dir))
+                #self.output.info('include_dir = {0}'.format(include_dir))
+                #self.output.info('lib_dir = {0}'.format(lib_dir))
+                #self.output.info('share_dir = {0}'.format(share_dir))
                 
                 # we copy everything for a full ICU package
                 self.copy("*", dst=bin_dir_dst, src=bin_dir, keep_path=True, symlinks=True)
@@ -354,11 +367,14 @@ class IcuConan(ConanFile):
 
     def package_id(self):
         # Whether we built with Cygwin or MSYS shouldn't affect the package id
-        if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys":
-            self.info.options.msvc_platform = "cygwin/msys"
+        if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys" or self.options.msvc_platform == "visual_studio":
+            self.info.options.msvc_platform = "visual_studio"
 
         # ICU unit testing shouldn't affect the package's ID
         self.info.options.with_unit_tests = "any"
+
+        # Verbosity doesn't affect package's ID
+        self.info.options.silent = "any"
             
     def package_info(self):
     
@@ -391,3 +407,6 @@ class IcuConan(ConanFile):
             if self.settings.os == 'Linux':
                 #self.cpp_info.exelinkflags.append("-L{0}".format(os.path.join(self.package_folder, "share", "icu", "59.1")))
                 self.cpp_info.libs.append('dl')
+                
+            if self.settings.os == 'Windows':
+                self.cpp_info.libs.append('advapi32')
