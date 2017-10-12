@@ -127,7 +127,9 @@ class IcuConan(ConanFile):
         #        self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. {0} / {1} \
         #                           \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
         #        return
-                
+        
+        silent = '--silent' if self.options.silent else ''
+        
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
             if self.options.msvc_platform == 'cygwin':
@@ -136,7 +138,6 @@ class IcuConan(ConanFile):
                 arch = '64' if self.settings.arch == 'x86_64' else '32'
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
                 enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
-                silent = '--silent' if self.options.silent else ''
                 data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
 
                 if not self.options.shared:
@@ -189,7 +190,6 @@ class IcuConan(ConanFile):
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
                 enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
                 data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
-                silent = '--silent' if self.options.silent else ''
                     
                 if not self.options.shared:
                     self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
@@ -288,6 +288,12 @@ class IcuConan(ConanFile):
                 elif self.settings.os == 'Macos':
                     platform = 'MacOSX'
 
+                #if self.settings.os == "Linux":
+                #    if self.settings.arch == "x86":
+                #        target = "%slinux-generic32" % target_prefix
+                #    elif self.settings.arch == "x86_64":
+                #        target = "%slinux-x86_64" % target_prefix
+                
                 arch = '64' if self.settings.arch == 'x86_64' else '32'
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
                 enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
@@ -300,7 +306,9 @@ class IcuConan(ConanFile):
 
                 self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} --disable-layout --disable-layoutex".format(
                     b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
-                self.run("cd {0} && make -j {1} install".format(b_path, tools.cpu_count()))
+                if self.options.with_unit_tests:
+                    self.run("cd {build_path} && make {silent_var} check".format(build_path=b_path, silent_var=silent))
+                self.run("cd {build_path} && make {silent_var} -j {cpus_var} install".format(build_path=b_path, cpus_var=tools.cpu_count(), silent_var=silent))
 
                 if self.settings.os == 'Macos':
                     with tools.chdir('output/lib'):
