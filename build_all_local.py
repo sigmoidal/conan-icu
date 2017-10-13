@@ -17,15 +17,18 @@ import os, sys
 # MSVC++ 14.1 _MSC_VER >= 1910 (Visual Studio 2017)
 #  
 
+def usage():
+    print("Usage: %s [win | linux | macosx]" % sys.argv[0]) 
+    
 def main(target_os):
     name = "icu"
     version = "59.1"
     channel = "bincrafters/testing"
     archs = [ "x86", "x86_64" ]
     build_types = [ "Release", "Debug" ]
-    links = [ True, False ]
+    shared = [ True, False ]
     compiler_versions = [ "15", "14" ]
-    msvc_platforms = { "msys": 'MSYS_ROOT=D:\dev\msys64',
+    msvc_platforms = {  "msys": 'MSYS_ROOT=D:\dev\msys64',
                       "cygwin": 'CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin' }
     
     if target_os == 'win':
@@ -33,7 +36,7 @@ def main(target_os):
         for arch in archs:
             for compiler_version in compiler_versions:
                 for build_type in build_types:
-                    for link in links:
+                    for link in shared:
                         for msvc_platform in msvc_platforms:
                             cmd = 'conan create {channel} -k \
                                    -s arch={arch} \
@@ -41,18 +44,20 @@ def main(target_os):
                                    -s compiler.version={compiler} \
                                    -o icu:msvc_platform={msvc_platform} \
                                    -o icu:shared={link} \
-                                   -e {build_env} > {name}-{version}-{arch}-{build_type}-{link}-{msvc_platform}-{used_compiler}.log'.format(name=name,
-                                                                                                                                            version=version,
-                                                                                                                                            channel=channel, 
-                                                                                                                                            arch=arch, 
-                                                                                                                                            compiler=compiler_version,
-                                                                                                                                            used_compiler="vs2017" if compiler_version == "15" else "vs2015",
-                                                                                                                                            build_type=build_type,
-                                                                                                                                            link=str(link),
-                                                                                                                                            msvc_platform=msvc_platform,
-                                                                                                                                            build_env=msvc_platforms[msvc_platform])
-                            print("[*] " + " ".join(cmd.split()))
+                                   -e {build_env} > {name}-{version}-{arch}-{build_type}-{link_str}-{msvc_platform}-{used_compiler}.log'.format(name=name,
+                                                                                                                                                version=version,
+                                                                                                                                                channel=channel, 
+                                                                                                                                                arch=arch, 
+                                                                                                                                                compiler=compiler_version,
+                                                                                                                                                used_compiler="vs2017" if compiler_version == "15" else "vs2015",
+                                                                                                                                                build_type=build_type,
+                                                                                                                                                link=str(link),
+                                                                                                                                                link_str='shared' if link else 'static',
+                                                                                                                                                msvc_platform=msvc_platform,
+                                                                                                                                                build_env=msvc_platforms[msvc_platform])
+                            print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
                             os.system( cmd )
+                            
     elif target_os == 'linux':
     
         compiler_versions = [ "5.4", "6.3" ]
@@ -61,29 +66,63 @@ def main(target_os):
         for arch in archs:
             for compiler_version in compiler_versions:
                 for build_type in build_types:
-                    for link in links:
-                        for msvc_platform in msvc_platforms:
-                            cmd = 'conan create {channel} -k \
-                                   -s arch={arch} \
-                                   -s build_type={build_type} \
-                                   -s compiler=gcc \
-                                   -s compiler.version={compiler} \
-                                   -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link}-{used_compiler}.log'.format(name=name,
+                    for link in shared:
+                        cmd = 'conan create {channel} -k \
+                               -s arch={arch} \
+                               -s build_type={build_type} \
+                               -s compiler=gcc \
+                               -s compiler.version={compiler} \
+                               -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
                                                                                                                                            version=version,
                                                                                                                                            channel=channel, 
                                                                                                                                            arch=arch, 
                                                                                                                                            compiler=compiler_version,
                                                                                                                                            used_compiler="gcc" + compiler_version,
                                                                                                                                            build_type=build_type,
-                                                                                                                                           link=str(link))
-                            print("[*] " + " ".join(cmd.split()))
-                            os.system( cmd )
+                                                                                                                                           link=str(link),
+                                                                                                                                           link_str='shared' if link else 'static')
+                        print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
+                        os.system( cmd )
+                            
+    elif target_os == 'macosx':
+    
+        #compiler_versions = [ "3.7", "3.8", "3.9", "4.0" ]
+        #compiler_versions = [ "4.0" ]
 
+        compiler = "apple-clang"
+        compiler_versions = [ "9.0" ]
+
+        # -s compiler.libcxx=libstdc++11 \
+
+        # process arguments
+        for arch in archs:
+            for compiler_version in compiler_versions:
+                for build_type in build_types:
+                    for link in shared:
+                        cmd = 'conan create {channel} -k \
+                               -s arch={arch} \
+                               -s build_type={build_type} \
+                               -s compiler={compiler} \
+                               -s compiler.version={compiler_v} \
+                               -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
+                                                                                                                                           version=version,
+                                                                                                                                           channel=channel, 
+                                                                                                                                           arch=arch, 
+                                                                                                                                           compiler=compiler,
+                                                                                                                                           compiler_v=compiler_version,
+                                                                                                                                           used_compiler=compiler + '-' + compiler_version,
+                                                                                                                                           build_type=build_type,
+                                                                                                                                           link=str(link),
+                                                                                                                                           link_str='shared' if link else 'static')
+                        print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
+                        os.system( cmd )
+    else:
+        usage()
+        exit(1)
+        
     os.system("conan search {name}/{version}@{channel} --table=file.html".format(name=name, version=version, channel=channel) )
 
-def usage():
-    print("Usage: %s [win | linux | macosx]" % sys.argv)
-    
+
 if len(sys.argv) < 2:
     usage()
     exit(1)
@@ -94,3 +133,4 @@ if target_os == 'win' or target_os == 'linux' or target_os == 'macosx':
     main(target_os)
 else:
     usage()
+    

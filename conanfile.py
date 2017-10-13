@@ -62,7 +62,10 @@ class IcuConan(ConanFile):
                       "data_packaging=archive", \
                       "with_unit_tests=False", \
                       "silent=True"
-
+                      
+    #def configure(self):
+    #    self.settings.compiler.libcxx = "libstdc++11"
+        
     def source(self):
         archive_type = "zip"
         if self.settings.os != 'Windows' or self.options.msvc_platform != 'visual_studio':
@@ -128,7 +131,7 @@ class IcuConan(ConanFile):
         #                           \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
         #        return
         
-        silent = '--silent' if self.options.silent else ''
+        silent = '--silent' if self.options.silent else 'VERBOSE=1'
         
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
@@ -304,11 +307,14 @@ class IcuConan(ConanFile):
 
                 output_path = os.path.join(root_path, 'output')
 
-                self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} --disable-layout --disable-layoutex".format(
-                    b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
+                self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} --disable-layout --disable-layoutex".format(b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
+                    
+                self.run("cd {build_path} && make {silent_var} -j {cpus_var}".format(build_path=b_path, cpus_var=tools.cpu_count(), silent_var=silent))
+                   
                 if self.options.with_unit_tests:
                     self.run("cd {build_path} && make {silent_var} check".format(build_path=b_path, silent_var=silent))
-                self.run("cd {build_path} && make {silent_var} -j {cpus_var} install".format(build_path=b_path, cpus_var=tools.cpu_count(), silent_var=silent))
+                    
+                self.run("cd {build_path} && make install".format(build_path=b_path, cpus_var=tools.cpu_count(), silent_var=silent))
 
                 if self.settings.os == 'Macos':
                     with tools.chdir('output/lib'):
