@@ -1,4 +1,4 @@
-from subprocess import call
+import subprocess
 import os, sys
 
 # python build_all.py > build_all.log
@@ -65,9 +65,33 @@ def main(target_os):
         # process arguments
         for arch in archs:
             for compiler_version in compiler_versions:
+                                    
+                compiler_major_version = compiler_version.split('.')[0]
+            
+                cc = "gcc-%s" % compiler_major_version
+                cxx = "g++-%s" % compiler_major_version
+                
+                try:
+                    output = subprocess.check_output("which %s" % cc, shell=True).decode('utf-8').strip()
+                    cc = output
+                except subprocess.CalledProcessError as e:
+                    print("ERROR: CC Compiler \"%s\" is not installed!" % cc)
+                    continue
+                
+                try:
+                    output = subprocess.check_output("which %s" % cxx, shell=True).decode('utf-8').strip()
+                    cxx = output
+                except subprocess.CalledProcessError as e:
+                    print("ERROR: CXX Compiler \"%s\" is not installed!" % cxx)
+                    continue
+                            
+                os.environ['CC'] = cc
+                os.environ['CXX'] = cxx
+                        
                 for build_type in build_types:
                     for link in shared:
                         cmd = 'conan create {channel} -k \
+                               --profile {profile} \
                                -s arch={arch} \
                                -s build_type={build_type} \
                                -s compiler=gcc \
@@ -77,6 +101,7 @@ def main(target_os):
                                                                                                                                            channel=channel, 
                                                                                                                                            arch=arch, 
                                                                                                                                            compiler=compiler_version,
+                                                                                                                                           profile='gcc%s' % compiler_major_version,
                                                                                                                                            used_compiler="gcc" + compiler_version,
                                                                                                                                            build_type=build_type,
                                                                                                                                            link=str(link),

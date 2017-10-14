@@ -63,8 +63,6 @@ class IcuConan(ConanFile):
                       "with_unit_tests=False", \
                       "silent=True"
                       
-    #def configure(self):
-    #    self.settings.compiler.libcxx = "libstdc++11"
         
     def source(self):
         archive_type = "zip"
@@ -132,6 +130,7 @@ class IcuConan(ConanFile):
         #        return
         
         silent = '--silent' if self.options.silent else 'VERBOSE=1'
+        general_opts = '--disable-layout --disable-layoutex'
         
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
@@ -177,9 +176,10 @@ class IcuConan(ConanFile):
 
                 b_path = os.path.join(root_path, self.name, 'build')
                 os.mkdir(b_path)
+                                
                 self.output.info("Starting configuration.")
-                self.run("{0} && cd {1} && bash ../source/runConfigureICU {2} {3} --with-library-bits={4} --prefix={5} {6} {7} --disable-layout --disable-layoutex".format(
-                        vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
+                self.run("{0} && cd {1} && bash ../source/runConfigureICU {2} {3} --with-library-bits={4} --prefix={5} {6} {7} {general}".format(
+                        vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging, general=general_opts))
                 self.output.info("Starting built.")
                 # do not use multiple CPUs with make (make -j X) as builds fail on Cygwin
                 self.run("{vcenv} && cd {build_path} && make {silent_var}".format(vcenv=vcvars_command, build_path=b_path, silent_var=silent))
@@ -238,7 +238,7 @@ class IcuConan(ConanFile):
                 #    env_build.cxx_flags.append("-FS")
                     
                 #with tools.environment_append(env_build.vars):                    
-                self.run("{0} && bash -c ^'cd {1} ^&^& ../source/runConfigureICU {2} {3} {4} --with-library-bits={5} --prefix={6} {7} {8} --disable-layout --disable-layoutex^'".format(vcvars_command, b_path, enable_debug, platform, apply_msys_config_detection_patch, arch, output_path, enable_static, data_packaging))
+                self.run("{0} && bash -c ^'cd {1} ^&^& ../source/runConfigureICU {2} {3} {4} --with-library-bits={5} --prefix={6} {7} {8} {general}^'".format(vcvars_command, b_path, enable_debug, platform, apply_msys_config_detection_patch, arch, output_path, enable_static, data_packaging, general=general_opts))
 
                 # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:
                 #
@@ -290,12 +290,6 @@ class IcuConan(ConanFile):
                         platform = 'Linux'
                 elif self.settings.os == 'Macos':
                     platform = 'MacOSX'
-
-                #if self.settings.os == "Linux":
-                #    if self.settings.arch == "x86":
-                #        target = "%slinux-generic32" % target_prefix
-                #    elif self.settings.arch == "x86_64":
-                #        target = "%slinux-x86_64" % target_prefix
                 
                 arch = '64' if self.settings.arch == 'x86_64' else '32'
                 enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
@@ -306,8 +300,20 @@ class IcuConan(ConanFile):
                 os.mkdir(b_path)
 
                 output_path = os.path.join(root_path, 'output')
+                
+                # do not move this from here
+                runConfigureICU_file = os.path.join(root_path, self.name,'source','runConfigureICU')
+                tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
+                tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)                
 
-                self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} --disable-layout --disable-layoutex".format(b_path, enable_debug, platform, arch, output_path, enable_static, data_packaging))
+                self.run("cd {0} && bash ../source/runConfigureICU {1} {2} --with-library-bits={3} --prefix={4} {5} {6} {general}".format(b_path, 
+                                                                                                                                          enable_debug, 
+                                                                                                                                          platform, 
+                                                                                                                                          arch, 
+                                                                                                                                          output_path, 
+                                                                                                                                          enable_static, 
+                                                                                                                                          data_packaging, 
+                                                                                                                                          general=general_opts))
                     
                 self.run("cd {build_path} && make {silent_var} -j {cpus_var}".format(build_path=b_path, cpus_var=tools.cpu_count(), silent_var=silent))
                    
@@ -323,10 +329,6 @@ class IcuConan(ConanFile):
                                 os.path.basename(dylib), dylib))
 
     def package(self):
-        #self.options.msvc_platform = 'cygwin'
-        #self.options.data_packaging = 'archive'
-        #self.options.shared = False
-
         if self.settings.os == 'Windows':
             bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
             if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys' or self.options.msvc_platform == 'any':
@@ -408,19 +410,20 @@ class IcuConan(ConanFile):
                 else:
                     keep = True
 
-        # if icudata is not last, it fails to build (is that true?)
+        # if icudata is not last, it fails to build on some platforms
+        # (have to double-check this)
         if keep:
             self.cpp_info.libs.append('icudata')
 
         self.env_info.PATH.append(os.path.join(self.package_folder, bin_dir))
-        self.env_info.PATH.append(os.path.join(self.package_folder, 'bin'))
 
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
-
             if self.settings.os == 'Linux':
-                #self.cpp_info.exelinkflags.append("-L{0}".format(os.path.join(self.package_folder, "share", "icu", "59.1")))
                 self.cpp_info.libs.append('dl')
                 
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
+                
+        if self.settings.compiler == "gcc":
+            self.cpp_info.cppflags = ["-std=c++11"]

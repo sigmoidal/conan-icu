@@ -15,7 +15,7 @@ class ICUTestConan(ConanFile):
 
     default_options = "with_io=False", \
                       "with_data=False", \
-                      "shared=True", \
+                      "shared=False", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
                       "with_unit_tests=False"
