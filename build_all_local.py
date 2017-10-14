@@ -1,5 +1,4 @@
-import subprocess
-import os, sys
+import subprocess, os, sys
 
 # python build_all.py > build_all.log
 #
@@ -94,14 +93,11 @@ def main(target_os):
                                --profile {profile} \
                                -s arch={arch} \
                                -s build_type={build_type} \
-                               -s compiler=gcc \
-                               -s compiler.version={compiler} \
                                -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
                                                                                                                                            version=version,
                                                                                                                                            channel=channel, 
-                                                                                                                                           arch=arch, 
-                                                                                                                                           compiler=compiler_version,
                                                                                                                                            profile='gcc%s' % compiler_major_version,
+                                                                                                                                           arch=arch, 
                                                                                                                                            used_compiler="gcc" + compiler_version,
                                                                                                                                            build_type=build_type,
                                                                                                                                            link=str(link),
