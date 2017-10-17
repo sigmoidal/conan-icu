@@ -29,6 +29,7 @@ def main(target_os):
     compiler_versions = [ "15", "14" ]
     msvc_platforms = {  "msys": 'MSYS_ROOT=D:\dev\msys64',
                       "cygwin": 'CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin' }
+    with_data = [ True, False ]
     
     if target_os == 'win':
         # process arguments
@@ -62,48 +63,51 @@ def main(target_os):
         compiler_versions = [ "5.4", "6.3" ]
     
         # process arguments
-        for arch in archs:
-            for compiler_version in compiler_versions:
-                                    
-                compiler_major_version = compiler_version.split('.')[0]
-            
-                cc = "gcc-%s" % compiler_major_version
-                cxx = "g++-%s" % compiler_major_version
+        for has_data in with_data:
+            for arch in archs:
+                for compiler_version in compiler_versions:
+                                        
+                    compiler_major_version = compiler_version.split('.')[0]
                 
-                try:
-                    output = subprocess.check_output("which %s" % cc, shell=True).decode('utf-8').strip()
-                    cc = output
-                except subprocess.CalledProcessError as e:
-                    print("ERROR: CC Compiler \"%s\" is not installed!" % cc)
-                    continue
-                
-                try:
-                    output = subprocess.check_output("which %s" % cxx, shell=True).decode('utf-8').strip()
-                    cxx = output
-                except subprocess.CalledProcessError as e:
-                    print("ERROR: CXX Compiler \"%s\" is not installed!" % cxx)
-                    continue
+                    cc = "gcc-%s" % compiler_major_version
+                    cxx = "g++-%s" % compiler_major_version
+                    
+                    try:
+                        output = subprocess.check_output("which %s" % cc, shell=True).decode('utf-8').strip()
+                        cc = output
+                    except subprocess.CalledProcessError as e:
+                        print("ERROR: CC Compiler \"%s\" is not installed!" % cc)
+                        continue
+                    
+                    try:
+                        output = subprocess.check_output("which %s" % cxx, shell=True).decode('utf-8').strip()
+                        cxx = output
+                    except subprocess.CalledProcessError as e:
+                        print("ERROR: CXX Compiler \"%s\" is not installed!" % cxx)
+                        continue
+                                
+                    os.environ['CC'] = cc
+                    os.environ['CXX'] = cxx
                             
-                os.environ['CC'] = cc
-                os.environ['CXX'] = cxx
-                        
-                for build_type in build_types:
-                    for link in shared:
-                        cmd = 'conan create {channel} -k \
-                               --profile {profile} \
-                               -s arch={arch} \
-                               -s build_type={build_type} \
-                               -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
-                                                                                                                                           version=version,
-                                                                                                                                           channel=channel, 
-                                                                                                                                           profile='gcc%s' % compiler_major_version,
-                                                                                                                                           arch=arch, 
-                                                                                                                                           used_compiler="gcc" + compiler_version,
-                                                                                                                                           build_type=build_type,
-                                                                                                                                           link=str(link),
-                                                                                                                                           link_str='shared' if link else 'static')
-                        print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
-                        os.system( cmd )
+                    for build_type in build_types:
+                        for link in shared:
+                            cmd = 'conan create {channel} -k \
+                                   --profile {profile} \
+                                   -s arch={arch} \
+                                   -s build_type={build_type} \
+                                   -o icu:with_data={with_data} \
+                                   -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
+                                                                                                                                               version=version,
+                                                                                                                                               channel=channel, 
+                                                                                                                                               profile='gcc%s' % compiler_major_version,
+                                                                                                                                               arch=arch, 
+                                                                                                                                               used_compiler="gcc" + compiler_version,
+                                                                                                                                               build_type=build_type,
+                                                                                                                                               link=str(link),
+                                                                                                                                               link_str='shared' if link else 'static'
+                                                                                                                                               with_data=has_data)
+                            print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
+                            os.system( cmd )
                             
     elif target_os == 'macosx':
     
