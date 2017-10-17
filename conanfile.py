@@ -146,7 +146,7 @@ class IcuConan(ConanFile):
             if self.options.msvc_platform == 'cygwin':
                 self.build_cygwin()
             elif self.options.msvc_platform == 'msys':
-                self.build_msys2()
+                self.build_msys()
             else:
                 sln_file = os.path.join(src_path,"allinone","allinone.sln")
                 targets = ["i18n","common","pkgdata"]
@@ -259,7 +259,6 @@ class IcuConan(ConanFile):
         self.info.options.silent = "any"
             
     def package_info(self):
-    
         bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin' , 'lib')
         
         self.cpp_info.libdirs = [ lib_dir ]
@@ -308,8 +307,8 @@ class IcuConan(ConanFile):
 
         
     # Detect MSYS2 build environment
-    def detect_msys2(self):
-        # Check if MSYS2_ROOT is provided in the environment
+    def detect_msys(self):
+        # Check if MSYS_ROOT is provided in the environment
         if 'MSYS_ROOT' in os.environ:
             if os.path.isdir(os.path.join(os.environ["MSYS_ROOT"], 'usr', 'bin')):
                 return True
@@ -319,13 +318,13 @@ class IcuConan(ConanFile):
                 self.output.error(r'Setup the environment variable MSYS_ROOT to the installation path.')
         else:
             # check for a default MSYS2 installation
-            msys2_search_paths = [ r'C:\\msys64' ]
+            msys_search_paths = [ r'C:\\msys64' ]
             
-            for msys2_path in msys2_search_paths:
+            for msys_path in msys_search_paths:
                 # try to detect if MSYS2 is available at the default installation path
                 if os.path.isdir(msys2_path):
-                    self.output.info(r'Detected MSYS2 in {0}'.format(msys2_path))
-                    os.environ["MSYS_ROOT"] = msys2_path
+                    self.output.info(r'Detected MSYS2 in {0}'.format(msys_path))
+                    os.environ["MSYS_ROOT"] = msys_path
                     return True
         
         return False
@@ -355,7 +354,7 @@ class IcuConan(ConanFile):
         return False
     
 
-    def build_msys2(self):
+    def build_msys(self):
         self.cfg['platform'] = 'MSYS/MSVC'
 
         if 'MSYS_ROOT' not in os.environ:
@@ -363,16 +362,13 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"]) 
         
-        msys_root_path = os.environ["MSYS_ROOT"].replace('\\', '/')      
+        msys_root_path = os.environ["MSYS_ROOT"].replace('\\', '/')
         
         os.environ["PATH"] = r"C:\\Windows\\system32" + ";" + r"C:\\Windows" + ";" + r"C:\\Windows\\system32\Wbem" + ";" + os.path.join(msys_root_path,'usr','bin')
         self.output.info("PATH: " + os.environ["PATH"])
-
-        root_path = root_path.replace('\\', '/')
-        src_path = src_path.replace('\\', '/')
         
-        self.cfg['build_dir'] = tools.unix_path(self.cfg['build_dir'])
-        self.cfg['output_dir'] = tools.unix_path(self.cfg['output_dir'])
+        self.cfg['build_dir'] = self.cfg['build_dir'].replace('\\', '/')
+        self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
 
         os.mkdir(self.cfg['build_dir'])
 
@@ -398,7 +394,7 @@ class IcuConan(ConanFile):
         #
         # We patch the respective Makefile.in, to disable building it for MSYS
         #
-        escapesrc_patch = os.path.join(root_path, self.name,'source','tools','Makefile.in')
+        escapesrc_patch = os.path.join(self.conanfile_directory, self.name,'source','tools','Makefile.in')
         tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
         # Builds may get stuck when using multiple CPUs in Debug mode
