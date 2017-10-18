@@ -1,7 +1,7 @@
 from conans import ConanFile, tools, CMake
 import os
 
-# conan test_package msys/icu -k -t --build=never -o icu:msvc_platform=msys -o icu:with_data=True -e MSYS_ROOT=D:\dev\msys64
+# conan test_package msys/icu -k -t --build=never -o icu:msvc_platform=msys -e MSYS_ROOT=D:\dev\msys64
 
 class ICUTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"

@@ -259,7 +259,7 @@ class IcuConan(ConanFile):
     def package_id(self):
         # Whether we built with Cygwin or MSYS shouldn't affect the package id
         if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys" or self.options.msvc_platform == "visual_studio":
-            self.info.options.msvc_platform = "visual_studio"
+            self.info.options.msvc_platform = "any"
 
         # ICU unit testing shouldn't affect the package's ID
         self.info.options.with_unit_tests = "any"
