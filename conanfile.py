@@ -66,8 +66,7 @@ class IcuConan(ConanFile):
             'output_dir': '', 
             'enable_static': '', 
             'data_packaging': '', 
-            'general_opts': '',
-            'ICUMAKE': '' }
+            'general_opts': '' }
     
     def source(self):
         archive_type = "zip"
@@ -197,9 +196,8 @@ class IcuConan(ConanFile):
                 config_cmd = self.build_config_cmd()
 
                 #with tools.environment_append(env_build.vars):                                                                                                     
-                self.run("cd {builddir} && export {icumake} && bash {config_cmd}".format(icumake='ICUMAKE=%s'%self.cfg['ICUMAKE'] if self.cfg['ICUMAKE'] else '', 
-                                                                                         builddir=self.cfg['build_dir'],
-                                                                                         config_cmd=config_cmd))
+                self.run("cd {builddir} && bash {config_cmd}".format(builddir=self.cfg['build_dir'],
+                                                                     config_cmd=config_cmd))
                     
                 self.run("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
                                                                                cpus_var=tools.cpu_count(), 
@@ -407,10 +405,9 @@ class IcuConan(ConanFile):
         self.msys_patch()
         
         #with tools.environment_append(env_build.vars):                    
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& export ICUMAKE=^\"{datadir}^\" ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'], 
-                                                                                                                     datadir=self.cfg['ICUMAKE'],
-                                                                                                                     builddir=self.cfg['build_dir'], 
-                                                                                                                     config_cmd=config_cmd))
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'], 
+                                                                                                builddir=self.cfg['build_dir'], 
+                                                                                                config_cmd=config_cmd))
 
 
 
