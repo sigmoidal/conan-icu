@@ -29,15 +29,18 @@ def main(target_os):
     compiler_versions = [ "15", "14" ]
     msvc_platforms = {  "msys": 'MSYS_ROOT=D:\dev\msys64',
                       "cygwin": 'CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin' }
-    with_data = [ True, False ]
     
     if target_os == 'win':
         # process arguments
-        for arch in archs:
-            for compiler_version in compiler_versions:
-                for build_type in build_types:
-                    for link in shared:
-                        for msvc_platform in msvc_platforms:
+        for msvc_platform in msvc_platforms:
+            
+            source_clear_cmd = "conan remove {name}/{version}@{channel} -s".format(name=name, version=version, channel=channel)
+            os.system( source_clear_cmd )
+            
+            for arch in archs:
+                for compiler_version in compiler_versions:
+                    for build_type in build_types:
+                        for link in shared:
                             cmd = 'conan create {channel} -k \
                                    -s arch={arch} \
                                    -s build_type={build_type} \
@@ -95,7 +98,7 @@ def main(target_os):
                                    --profile {profile} \
                                    -s arch={arch} \
                                    -s build_type={build_type} \
-                                   -o icu:with_data={with_data} \
+                                   -o icu:with_data={has_data} \
                                    -o icu:shared={link} 2>&1 | tee {name}-{version}-{arch}-{build_type}-{link_str}-{used_compiler}.log'.format(name=name,
                                                                                                                                                version=version,
                                                                                                                                                channel=channel, 
@@ -104,8 +107,8 @@ def main(target_os):
                                                                                                                                                used_compiler="gcc" + compiler_version,
                                                                                                                                                build_type=build_type,
                                                                                                                                                link=str(link),
-                                                                                                                                               link_str='shared' if link else 'static'
-                                                                                                                                               with_data=has_data)
+                                                                                                                                               link_str='shared' if link else 'static',
+                                                                                                                                               has_data=has_data)
                             print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
                             os.system( cmd )
                             

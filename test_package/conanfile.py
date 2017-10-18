@@ -6,16 +6,12 @@ import os
 class ICUTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
-    options = {"with_io": [True, False],
-               "with_data": [True, False],
-               "shared": [True, False],
+    options = {"shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
                "with_unit_tests": [True, False]}
 
-    default_options = "with_io=False", \
-                      "with_data=False", \
-                      "shared=False", \
+    default_options = "shared=False", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
                       "with_unit_tests=False"
