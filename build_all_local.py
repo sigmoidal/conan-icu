@@ -34,7 +34,7 @@ def main(target_os):
         # process arguments
         for msvc_platform in msvc_platforms:
             
-            source_clear_cmd = "conan remove {name}/{version}@{channel} -s".format(name=name, version=version, channel=channel)
+            source_clear_cmd = "conan remove {name}/{version}@{channel} -s -f".format(name=name, version=version, channel=channel)
             os.system( source_clear_cmd )
             
             for arch in archs:
