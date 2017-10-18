@@ -1,16 +1,16 @@
 build: off
 
 image:
-#  - Visual Studio 2015
+  - Visual Studio 2015
   - Visual Studio 2017
 
 platform:
-#  - x86
+  - x86
   - x64
 
 configuration:
-#- Debug
-- Release
+  - Debug
+  - Release
 
 environment:
     PYTHON: "C:\\Python27"

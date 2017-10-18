@@ -12,7 +12,7 @@ class ICUTestConan(ConanFile):
                "with_unit_tests": [True, False]}
 
     default_options = "shared=False", \
-                      "msvc_platform=visual_studio", \
+                      "msvc_platform=msys", \
                       "data_packaging=archive", \
                       "with_unit_tests=False"
 
