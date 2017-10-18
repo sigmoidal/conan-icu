@@ -110,15 +110,9 @@ def main(target_os):
                             
     elif target_os == 'macosx':
     
-        #compiler_versions = [ "3.7", "3.8", "3.9", "4.0" ]
-        #compiler_versions = [ "4.0" ]
-
         compiler = "apple-clang"
         compiler_versions = [ "9.0" ]
 
-        # -s compiler.libcxx=libstdc++11 \
-
-        # process arguments
         for arch in archs:
             for compiler_version in compiler_versions:
                 for build_type in build_types:
