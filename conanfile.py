@@ -33,7 +33,7 @@ import shutil
 #
 # Create an ICU package using a Cygwin/MSYS static debug built
 #   
-#    conan create bincrafters/testing -e MSYS_ROOT=D:\dev\msys64
+#    conan create bincrafters/testing
 #
 
 class IcuConan(ConanFile):
@@ -123,7 +123,6 @@ class IcuConan(ConanFile):
 
         if self.settings.os == 'Windows':
             runtime = str(self.settings.compiler.runtime)
-            self.output.info("Runtime: %s" % runtime)
 
         if self.settings.os == 'Windows':
             runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')

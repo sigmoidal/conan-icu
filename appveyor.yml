@@ -17,8 +17,8 @@ environment:
     PYTHON_VERSION: "2.7.8"
     PYTHON_ARCH: "32"
 
-    CYGWIN_ROOT: "C:\\cygwin64"
-    MSYS_ROOT: "C:\\msys64"
+    #CYGWIN_ROOT: "C:\\cygwin64"
+    #MSYS_ROOT: "C:\\msys64"
 
     CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
 
