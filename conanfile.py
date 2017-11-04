@@ -67,7 +67,16 @@ class IcuConan(ConanFile):
             'enable_static': '', 
             'data_packaging': '', 
             'general_opts': '' }
-    
+
+    def build_requirements(self):
+        if self.settings.os == "Windows":
+            # conan remote add bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
+            if self.options.msvc_platform == 'cygwin':
+                # https://github.com/SSE4/conan-cygwin_installer
+                self.build_requires("cygwin_installer/2.9.0@bincrafters/testing")
+            if self.options.msvc_platform == 'msys':
+                self.build_requires("msys2_installer/latest@bincrafters/testing")
+
     def source(self):
         archive_type = "zip"
         if self.settings.os != 'Windows' or self.options.msvc_platform != 'visual_studio':
@@ -103,18 +112,6 @@ class IcuConan(ConanFile):
             
             shutil.rmtree(icu_datadir)
             os.rename(downloaded_icu_datadir, icu_datadir)
-              
-        
-        if self.settings.os == 'Windows':
-            # Prevent multiple CL.EXE writes to the same .PDB file (use /FS)        
-            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
-            tools.replace_in_file(runConfigureICU_file, '        DEBUG_CFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
-            tools.replace_in_file(runConfigureICU_file, '        DEBUG_CXXFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CXXFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
-        else:
-            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name)
-            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
-            tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
-            tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)  
 
         #tools.replace_in_file(os.path.join(src_path,'data','makedata.mak'),
         #                      r'GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"',
@@ -124,18 +121,26 @@ class IcuConan(ConanFile):
         root_path = self.conanfile_directory
         src_path = os.path.join(root_path, self.name, 'source')
 
-        # This handles the weird case of using ICU sources for Windows on a Unix environment, and vice-versa
-        # this is primarily aimed at builds using Cygwin/MSVC which require unix line endings
-        #if self.settings.os == 'Windows' and self.options.msvc_platform == 'visual_studio':
-        #    if b'\r\n' not in open(os.path.join(src_path, "runConfigureICU"), 'rb').read():
-        #        self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. {0} / {1} \
-        #                           \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
-        #        return
-        #else:
-        #    if b'\r\n' not in open(os.path.join(src_path, "runConfigureICU"), 'rb').read():
-        #        self.output.error("\n\nBuild failed. The line endings of your sources are inconsistent with the build configuration you requested. {0} / {1} \
-        #                           \nPlease consider clearing your cache sources (i.e. remove the --keep-sources command line option\n\n".format(self.settings.os, self.options.msvc_platform))
-        #        return
+        if self.settings.os == 'Windows':
+            runtime = str(self.settings.compiler.runtime)
+            self.output.info("Runtime: %s" % runtime)
+
+        if self.settings.os == 'Windows':
+            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+
+            if self.settings.build_type == "Debug":
+                # Prevent multiple CL.EXE writes to the same .PDB file (use /FS)
+                tools.replace_in_file(runConfigureICU_file, '        DEBUG_CFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CFLAGS=\'-Zi -{0} -FS\'\n'.format(runtime), strict=True)
+                tools.replace_in_file(runConfigureICU_file, '        DEBUG_CXXFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CXXFLAGS=\'-Zi -{0} -FS\'\n'.format(runtime), strict=True)
+
+            if self.settings.build_type == "Release":
+                tools.replace_in_file(runConfigureICU_file, '        RELEASE_CFLAGS=\'-Gy -MD\'\n', '        RELEASE_CFLAGS=\'-Gy -{0}\'\n'.format(runtime), strict=True)
+                tools.replace_in_file(runConfigureICU_file, '        RELEASE_CXXFLAGS=\'-Gy -MD\'\n', '        RELEASE_CXXFLAGS=\'-Gy -{0}\'\n'.format(runtime), strict=True)
+        else:
+            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name)
+            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+            tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
+            tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
 
         self.cfg['build_dir'] = os.path.join(root_path, self.name, 'build')
         self.cfg['output_dir'] = os.path.join(root_path, 'output')
@@ -378,14 +383,9 @@ class IcuConan(ConanFile):
         self.cfg['platform'] = 'MSYS/MSVC'
 
         if 'MSYS_ROOT' not in os.environ:
-            self.output.warn('MSYS_ROOT not in your environment')
+            raise Exception("MSYS_ROOT environment variable must be set.")
         else:
-            self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"]) 
-        
-        msys_root_path = os.environ["MSYS_ROOT"].replace('\\', '/')
-        
-        os.environ["PATH"] = r"C:\\Windows\\system32" + ";" + r"C:\\Windows" + ";" + r"C:\\Windows\\system32\Wbem" + ";" + os.path.join(msys_root_path,'usr','bin')
-        self.output.info("PATH: " + os.environ["PATH"])
+            self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
         
         os.mkdir(self.cfg['build_dir'])
         
@@ -430,40 +430,35 @@ class IcuConan(ConanFile):
         
     def build_cygwin(self):
         self.cfg['platform'] = 'Cygwin/MSVC'
+       
+        if 'CYGWIN_ROOT' not in os.environ:
+            raise Exception("CYGWIN_ROOT environment variable must be set.")
+        else:
+            self.output.info("Using CYygwin from: " + os.environ["CYGWIN_ROOT"])
+        
+        os.mkdir(self.cfg['build_dir'])
+        self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
+                        
+        self.output.info("Starting configuration.")
+                                                                                      
+        config_cmd = self.build_config_cmd()                  
+        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
+                                                                             builddir=self.cfg['build_dir'],
+                                                                             config_cmd=config_cmd))
+                                                                             
+        self.output.info("Starting built.")
 
-        if self.detect_cygwin():
-            cygwin_root_path = os.environ["CYGWIN_ROOT"].replace('\\', '/')
-            
-            os.environ["PATH"] = r"C:\\Windows\\system32" + ";" + \
-                                 r"C:\\Windows" + ";" + \
-                                 r"C:\\Windows\\system32\Wbem" + ";" +  \
-                                 cygwin_root_path + "/bin" + ";" + \
-                                 cygwin_root_path + "/usr/bin" + ";" + \
-                                 cygwin_root_path + "/usr/sbin"
-
-            os.mkdir(self.cfg['build_dir'])
-            self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
-                            
-            self.output.info("Starting configuration.")
-
-            config_cmd = self.build_config_cmd()                  
-            self.run("{vccmd} && cd {builddir} && bash {config_cmd}".format(vccmd=self.cfg['vcvars_command'], 
-                                                                            builddir=self.cfg['build_dir'], 
-                                                                            config_cmd=config_cmd))
-                                                                                 
-            self.output.info("Starting built.")
-
-            self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'], 
-                                                                                      builddir=self.cfg['build_dir'], 
-                                                                                      silent=self.cfg['silent'],
-                                                                                      cpus_var=tools.cpu_count()))
-            if self.options.with_unit_tests:
-                self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vcvars_command'], 
+        self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'], 
                                                                                   builddir=self.cfg['build_dir'], 
-                                                                                  silent=self.cfg['silent']))
-                                                                                        
-            self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vcvars_command'], 
-                                                                                builddir=self.cfg['build_dir'], 
-                                                                                silent=self.cfg['silent']))
+                                                                                  silent=self.cfg['silent'],
+                                                                                  cpus_var=tools.cpu_count()))
+        if self.options.with_unit_tests:
+            self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vcvars_command'], 
+                                                                              builddir=self.cfg['build_dir'], 
+                                                                              silent=self.cfg['silent']))
+                                                                                    
+        self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vcvars_command'], 
+                                                                            builddir=self.cfg['build_dir'], 
+                                                                            silent=self.cfg['silent']))
             
             
