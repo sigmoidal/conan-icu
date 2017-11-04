@@ -25,7 +25,7 @@ import shutil
 #
 # Create an ICU package using a Cygwin/MSVC static release built
 #   
-#    conan create bincrafters/testing -o icu:msvc_platform=cygwin -o icu:shared=False -e CYGWIN_ROOT=D:\PortableApps\CygwinPortable\App\Cygwin
+#    conan create bincrafters/testing -o icu:msvc_platform=cygwin -o icu:shared=False
 #
 # Create an ICU package using a Cygwin/MSYS static debug built
 #   
@@ -316,56 +316,6 @@ class IcuConan(ConanFile):
                                                                                                                                                              general=self.cfg['general_opts'])
                                                                                                                                                                                       
         return config_cmd
-
-        
-    # Detect MSYS2 build environment
-    def detect_msys(self):
-        # Check if MSYS_ROOT is provided in the environment
-        if 'MSYS_ROOT' in os.environ:
-            if os.path.isdir(os.path.join(os.environ["MSYS_ROOT"], 'usr', 'bin')):
-                return True
-            else:
-                self.output.error(r'MSYS_ROOT: "{0}" does not seem to be a valid MSYS2 installation.'.format(os.environ["MSYS_ROOT"]))
-                self.output.error(r'To build ICU with MSYS/MSVC you need a MSYS2 installation (see http://www.msys2.org/).')
-                self.output.error(r'Setup the environment variable MSYS_ROOT to the installation path.')
-        else:
-            # check for a default MSYS2 installation
-            msys_search_paths = [ r'C:\\msys64' ]
-            
-            for msys_path in msys_search_paths:
-                # try to detect if MSYS2 is available at the default installation path
-                if os.path.isdir(msys_path):
-                    self.output.info(r'Detected MSYS2 in {0}'.format(msys_path))
-                    os.environ["MSYS_ROOT"] = msys_path
-                    return True
-        
-        return False
-        
-        
-    # Detect Cygwin build environment
-    def detect_cygwin(self):
-        self.output.warn("DETECTING CYGWIN")
-        # Check if CYGWIN_ROOT is provided in the environment
-        if 'CYGWIN_ROOT' in os.environ:
-            if os.path.isdir(os.path.join(os.environ["CYGWIN_ROOT"], "bin")):
-                return True
-            else:
-                self.output.error(r'CYGWIN_ROOT: "{0}" does not seem to be a valid Cygwin installation.'.format(os.environ["CYGWIN_ROOT"]))
-                self.output.error(r'To build ICU with Cygwin/MSVC you need a Cygwin installation (see http://cygwin.com/).')
-                self.output.error(r'Setup the environment variable CYGWIN_ROOT to the installation path.')
-        else:
-            # check for a default Cygwin 32 and 64-bit installation
-            cygwin_search_paths = [ r'C:\\Cygwin', r'C:\\Cygwin64' ]
-            
-            for cygwin_path in cygwin_search_paths:
-                # try to detect if Cygwin is available at the default installation path
-                if os.path.isdir(cygwin_path):
-                    self.output.info(r'Detected Cygwin in {0}'.format(cygwin_path))
-                    os.environ["CYGWIN_ROOT"] = cygwin_path
-                    return True
-                    
-        return False
-    
 
     def msys_patch(self):
         # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:

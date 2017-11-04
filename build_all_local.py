@@ -24,36 +24,46 @@ def main(target_os):
     version = "59.1"
     channel = "bincrafters/testing"
     archs = [ "x86", "x86_64" ]
-    build_types = [ "Release", "Debug" ]
+    build_types = ["Release", "Debug"]
+    win_runtimes = [ "MT", "MD" ]
     shared = [ True, False ]
     compiler_versions = [ "15", "14" ]
+    msvc_platforms = [ "msys", "cygwin" ]
 
     if target_os == 'win':
+        for msvc_platform in msvc_platforms:
+            source_clear_cmd = "conan remove {name}/{version}@{channel} -s -f".format(name=name, version=version, channel=channel)
+            os.system( source_clear_cmd )
 
-        source_clear_cmd = "conan remove {name}/{version}@{channel} -s -f".format(name=name, version=version, channel=channel)
-        os.system( source_clear_cmd )
+            for arch in archs:
+                for compiler_version in compiler_versions:
+                    for build_type in build_types:
+                        for link in shared:
+                            if shared:
+                                win_runtime = "MD" if build_type == "Release" else "MDd"
+                            else:
+                                win_runtime = "MT" if build_type == "Release" else "MTd"
 
-        for arch in archs:
-            for compiler_version in compiler_versions:
-                for build_type in build_types:
-                    for link in shared:
-                        cmd = 'conan create {channel} -k \
-                               -s arch={arch} \
-                               -s build_type={build_type} \
-                               -s compiler.version={compiler} \
-                               -o icu:msvc_platform={msvc_platform} \
-                               -o icu:shared={link} > {name}-{version}-{arch}-{build_type}-{link_str}-{msvc_platform}-{used_compiler}.log'.format(name=name,
-                                                                                                                                            version=version,
-                                                                                                                                            channel=channel,
-                                                                                                                                            arch=arch,
-                                                                                                                                            compiler=compiler_version,
-                                                                                                                                            used_compiler="vs2017" if compiler_version == "15" else "vs2015",
-                                                                                                                                            build_type=build_type,
-                                                                                                                                            link=str(link),
-                                                                                                                                            link_str='shared' if link else 'static',
-                                                                                                                                            msvc_platform=msvc_platform)
-                        print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
-                        os.system( cmd )
+                            cmd = 'conan create {channel} -k \
+                                   -s arch={arch} \
+                                   -s build_type={build_type} \
+                                   -s compiler.version={compiler} \
+                                   -s compiler.runtime={compiler_runtime} \
+                                   -o icu:with_unit_tests=True \
+                                   -o icu:msvc_platform={msvc_platform} \
+                                   -o icu:shared={link} > {name}-{version}-{arch}-{build_type}-{link_str}-{compiler_runtime}-{msvc_platform}-{used_compiler}.log'.format(name=name,
+                                                                                                                                                                         version=version,
+                                                                                                                                                                         channel=channel,
+                                                                                                                                                                         arch=arch,
+                                                                                                                                                                         compiler=compiler_version,
+                                                                                                                                                                         compiler_runtime=win_runtime,
+                                                                                                                                                                         used_compiler="vs2017" if compiler_version == "15" else "vs2015",
+                                                                                                                                                                         build_type=build_type,
+                                                                                                                                                                         link=str(link),
+                                                                                                                                                                         link_str='shared' if link else 'static',
+                                                                                                                                                                         msvc_platform=msvc_platform)
+                            print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
+                            os.system( cmd )
                             
     elif target_os == 'linux':
     
