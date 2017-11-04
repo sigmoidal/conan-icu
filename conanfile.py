@@ -9,9 +9,9 @@ import shutil
 # Note that the MSVC builds with msvc_platform=visual_studio cannot do static ICU builds
 # The default platform for building MSVC binaries is MSYS (msvc_platform=msys)
 #
-# If you're building with Cygwin, the environment variable CYGWIN_ROOT must be present or specified via the command line
+# If you're building with Cygwin, the environment variable CYGWIN_ROOT must be present in your environment
 #
-# If you're building with MSYS, the environment variable MSYS_ROOT must be present or specified via the command line
+# If you're building with MSYS, the environment variable MSYS_ROOT must be present in your environment
 #
 # examples:
 #
@@ -127,16 +127,13 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
 
-            if self.settings.build_type == "Debug":
-                # Prevent multiple CL.EXE writes to the same .PDB file (use /FS)
-                tools.replace_in_file(runConfigureICU_file, '        DEBUG_CFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CFLAGS=\'-Zi -{0} -FS\'\n'.format(runtime), strict=True)
-                tools.replace_in_file(runConfigureICU_file, '        DEBUG_CXXFLAGS=\'-Zi -MDd\'\n', '        DEBUG_CXXFLAGS=\'-Zi -{0} -FS\'\n'.format(runtime), strict=True)
+            if self.settings.build_type == 'Release':
+                tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % runtime)
+            if self.settings.build_type == 'Debug':
+                tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % runtime)
 
-            if self.settings.build_type == "Release":
-                tools.replace_in_file(runConfigureICU_file, '        RELEASE_CFLAGS=\'-Gy -MD\'\n', '        RELEASE_CFLAGS=\'-Gy -{0}\'\n'.format(runtime), strict=True)
-                tools.replace_in_file(runConfigureICU_file, '        RELEASE_CXXFLAGS=\'-Gy -MD\'\n', '        RELEASE_CXXFLAGS=\'-Gy -{0}\'\n'.format(runtime), strict=True)
         else:
-            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name)
+            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
             runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
             tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
             tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
@@ -157,7 +154,9 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             
             self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
-                
+
+            self.output.info("Environment PATH: %s" % os.environ['PATH'])
+
             if self.options.msvc_platform == 'cygwin':
                 self.build_cygwin()
             elif self.options.msvc_platform == 'msys':
@@ -384,10 +383,10 @@ class IcuConan(ConanFile):
             raise Exception("CYGWIN_ROOT environment variable must be set.")
         else:
             self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
-        
+
         os.mkdir(self.cfg['build_dir'])
         self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
-                        
+
         self.output.info("Starting configuration.")
                                                                                       
         config_cmd = self.build_config_cmd()                  
