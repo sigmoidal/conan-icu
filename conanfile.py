@@ -351,18 +351,18 @@ class IcuConan(ConanFile):
 
         # as of 59.1 this is necessary for building with MSYS
         self.msys_patch()
-        
-        #with tools.environment_append(env_build.vars):                    
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'], 
-                                                                                                builddir=self.cfg['build_dir'], 
-                                                                                                config_cmd=config_cmd))
 
-
-
-        # Builds may get stuck when using multiple CPUs in Debug mode
-        #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(env_build.vars):
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                                    builddir=self.cfg['build_dir'],
+                                                                                                    config_cmd=config_cmd))
+
+
+
+            # Builds may get stuck when using multiple CPUs in Debug mode
+            #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
+
             self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
                                                                                                   builddir=self.cfg['build_dir'],
                                                                                                   silent=self.cfg['silent'],
@@ -389,16 +389,17 @@ class IcuConan(ConanFile):
         self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
 
         self.output.info("Starting configuration.")
-                                                                                      
-        config_cmd = self.build_config_cmd()                  
-        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
-                                                                             builddir=self.cfg['build_dir'],
-                                                                             config_cmd=config_cmd))
-                                                                             
-        self.output.info("Starting built.")
 
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(env_build.vars):
+            config_cmd = self.build_config_cmd()
+            self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                 builddir=self.cfg['build_dir'],
+                                                                                 config_cmd=config_cmd))
+
+            self.output.info("Starting built.")
+
+
             self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
                                                                                       builddir=self.cfg['build_dir'],
                                                                                       silent=self.cfg['silent'],
