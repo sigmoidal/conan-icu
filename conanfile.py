@@ -74,8 +74,8 @@ class IcuConan(ConanFile):
             if self.options.msvc_platform == 'cygwin':
                 # https://github.com/SSE4/conan-cygwin_installer
                 self.build_requires("cygwin_installer/2.9.0@bincrafters/testing")
-            if self.options.msvc_platform == 'msys':
-                self.build_requires("msys2_installer/latest@bincrafters/testing")
+            #if self.options.msvc_platform == 'msys':
+            #    self.build_requires("msys2_installer/latest@bincrafters/testing")
 
     def source(self):
         archive_type = "zip"
