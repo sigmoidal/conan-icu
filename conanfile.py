@@ -89,13 +89,13 @@ class IcuConan(ConanFile):
         src_folder = os.getcwd()
   
         # update the outdated config.guess and config.sub
-        config_updates = [ 'config.guess', 'config.sub' ]
-        for cfg_update in config_updates:
-            dst_config = os.path.join(src_folder, self.name, 'source', cfg_update)
-            if os.path.isfile(dst_config):
-                os.remove(dst_config)
-            self.output.info('Updating %s' % dst_config)
-            tools.download('http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f={0};hb=HEAD'.format(cfg_update), dst_config);
+        #config_updates = [ 'config.guess', 'config.sub' ]
+        #for cfg_update in config_updates:
+        #    dst_config = os.path.join(src_folder, self.name, 'source', cfg_update)
+        #    if os.path.isfile(dst_config):
+        #        os.remove(dst_config)
+        #    self.output.info('Updating %s' % dst_config)
+        #    tools.download('http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f={0};hb=HEAD'.format(cfg_update), dst_config);
         
         #
         # ICU v59.1 has incomplete data in the tgz file released, 
@@ -343,6 +343,8 @@ class IcuConan(ConanFile):
 
         #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+
+        self.run('bash -c "pacman -S base-devel --needed --noconfirm"')
 
         env_build = AutoToolsBuildEnvironment(self)
         self.output.warn(str(env_build.vars))
