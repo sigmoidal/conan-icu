@@ -23,12 +23,12 @@ environment:
     CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
 
     matrix:
-        # Attention: ICU > 59.1 does no longer support compilers older than VS 2015
-        - CONAN_ICU_MSVC_PLATFORM: cygwin
-          CONAN_ICU_SHARED: True
+        ## Attention: ICU > 59.1 does no longer support compilers older than VS 2015
+        #- CONAN_ICU_MSVC_PLATFORM: cygwin
+        #  CONAN_ICU_SHARED: True
 
-        - CONAN_ICU_MSVC_PLATFORM: cygwin
-          CONAN_ICU_SHARED: False
+        #- CONAN_ICU_MSVC_PLATFORM: cygwin
+        #  CONAN_ICU_SHARED: False
 
         - CONAN_ICU_MSVC_PLATFORM: msys
           CONAN_ICU_SHARED: True
