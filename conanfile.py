@@ -330,7 +330,7 @@ class IcuConan(ConanFile):
     def build_msys(self):
         self.cfg['platform'] = 'MSYS/MSVC'
 
-        self.info.warn("===== >>>> make before msys: " + tools.which("make.exe"))
+        self.output.warn("===== >>>> make before msys: " + tools.which("make.exe"))
 
         if 'MSYS_ROOT' not in os.environ:
             os.environ['MSYS_ROOT'] = self.deps_env_info["msys2_installer"].MSYS_ROOT
@@ -342,7 +342,7 @@ class IcuConan(ConanFile):
 
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
-        self.info.warn("===== >>>> make after msys: " + tools.which("make.exe"))
+        self.output.warn("===== >>>> make after msys: " + tools.which("make.exe"))
 
         os.mkdir(self.cfg['build_dir'])
         
