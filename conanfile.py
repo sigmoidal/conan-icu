@@ -347,6 +347,7 @@ class IcuConan(ConanFile):
 
         self.output.info("New Environment PATH: %s" % os.environ['PATH'])
 
+        self.run('bash -c "which make.exe"')
         self.run('bash -c "pacman -S base-devel --needed --noconfirm"')
 
         env_build = AutoToolsBuildEnvironment(self)
