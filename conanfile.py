@@ -341,10 +341,14 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
+        #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
         self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
         self.run('bash -c "which make.exe"')
+
+        self.run('bash -c "make.exe --version"')
+        self.run('make.exe --version')
 
         self.output.info("New Environment PATH: %s" % os.environ['PATH'])
 
