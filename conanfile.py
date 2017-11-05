@@ -87,7 +87,9 @@ class IcuConan(ConanFile):
         tools.get("{0}.{1}".format(self.source_url, archive_type))
         
         src_folder = os.getcwd()
-  
+
+        self.run("pacman -Syuu --noconfirm")
+
         # update the outdated config.guess and config.sub
         #config_updates = [ 'config.guess', 'config.sub' ]
         #for cfg_update in config_updates:
