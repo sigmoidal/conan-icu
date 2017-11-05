@@ -347,7 +347,7 @@ class IcuConan(ConanFile):
         self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
         self.run('bash -c "which make.exe"')
 
-        self.run('bash -c "make.exe --version"')
+        self.run('bash --login -c "make.exe --version"')
         self.run('make.exe --version')
 
         self.output.info("New Environment PATH: %s" % os.environ['PATH'])
