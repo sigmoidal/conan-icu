@@ -343,6 +343,9 @@ class IcuConan(ConanFile):
 
         #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'mingw64', 'bin')
+
+        self.output.info("New Environment PATH: %s" % os.environ['PATH'])
 
         self.run('bash -c "pacman -S base-devel --needed --noconfirm"')
 
@@ -355,7 +358,7 @@ class IcuConan(ConanFile):
         self.run('bash -c "/usr/bin/make --version"')
         self.run('make.exe --version')
 
-        self.output.info("New Environment PATH: %s" % os.environ['PATH'])
+
 
         os.mkdir(self.cfg['build_dir'])
         
