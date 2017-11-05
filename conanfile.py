@@ -342,6 +342,7 @@ class IcuConan(ConanFile):
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
         #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr')
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'mingw64', 'bin')
 
@@ -349,7 +350,7 @@ class IcuConan(ConanFile):
 
         self.run('bash -c "which make"')
         self.run('bash -c "which pacman"')
-        self.run('bash -c "pacman -S base-devel --needed --noconfirm"')
+        self.run('bash -c ^"pacman -S base-devel --needed --noconfirm^"')
 
         env_build = AutoToolsBuildEnvironment(self)
         self.output.warn(str(env_build.vars))
