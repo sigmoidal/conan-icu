@@ -338,7 +338,7 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        os.environ['PATH'].append(os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin'))
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
         os.mkdir(self.cfg['build_dir'])
         
