@@ -344,10 +344,13 @@ class IcuConan(ConanFile):
         #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
+        env_build = AutoToolsBuildEnvironment(self)
+        self.output.warn(env_build.vars)
+
         self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
         self.run('bash -c "which make.exe"')
 
-        self.run('bash --login -c "make.exe --version"')
+        self.run('bash -c "/usr/bin/make.exe --version"')
         self.run('make.exe --version')
 
         self.output.info("New Environment PATH: %s" % os.environ['PATH'])
@@ -369,7 +372,7 @@ class IcuConan(ConanFile):
         # as of 59.1 this is necessary for building with MSYS
         self.msys_patch()
 
-        env_build = AutoToolsBuildEnvironment(self)
+
         with tools.environment_append(env_build.vars):
             self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                                     builddir=self.cfg['build_dir'],
