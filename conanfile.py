@@ -363,28 +363,28 @@ class IcuConan(ConanFile):
             self.msys_patch()
 
 
-            with tools.environment_append(env_build.vars):
-                self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                                        builddir=self.cfg['build_dir'],
-                                                                                                        config_cmd=config_cmd))
+            #with tools.environment_append(env_build.vars):
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                                    builddir=self.cfg['build_dir'],
+                                                                                                    config_cmd=config_cmd))
 
 
 
-                # Builds may get stuck when using multiple CPUs in Debug mode
-                #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
+            # Builds may get stuck when using multiple CPUs in Debug mode
+            #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
 
-                self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
-                                                                                                      builddir=self.cfg['build_dir'],
-                                                                                                      silent=self.cfg['silent'],
-                                                                                                      cpus_var=tools.cpu_count()))
-                if self.options.with_unit_tests:
-                    self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
                                                                                                   builddir=self.cfg['build_dir'],
-                                                                                                  silent=self.cfg['silent']))
+                                                                                                  silent=self.cfg['silent'],
+                                                                                                  cpus_var=tools.cpu_count()))
+            if self.options.with_unit_tests:
+                self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+                                                                                              builddir=self.cfg['build_dir'],
+                                                                                              silent=self.cfg['silent']))
 
-                self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                                 builddir=self.cfg['build_dir'],
-                                                                                                 silent=self.cfg['silent']))
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                             builddir=self.cfg['build_dir'],
+                                                                                             silent=self.cfg['silent']))
 
 
     def build_cygwin(self):
