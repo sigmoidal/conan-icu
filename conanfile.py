@@ -331,10 +331,15 @@ class IcuConan(ConanFile):
         self.cfg['platform'] = 'MSYS/MSVC'
 
         if 'MSYS_ROOT' not in os.environ:
+            os.environ['MSYS_ROOT'] = self.deps_env_info["msys2_installer"].MSYS_ROOT
+
+        if 'MSYS_ROOT' not in os.environ:
             raise Exception("MSYS_ROOT environment variable must be set.")
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
-        
+
+        os.environ['PATH'].append(os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin'))
+
         os.mkdir(self.cfg['build_dir'])
         
         self.cfg['build_dir'] = self.cfg['build_dir'].replace('\\', '/')
