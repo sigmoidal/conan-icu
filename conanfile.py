@@ -345,7 +345,7 @@ class IcuConan(ConanFile):
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
         env_build = AutoToolsBuildEnvironment(self)
-        self.output.warn(env_build.vars)
+        self.output.warn(str(env_build.vars))
 
         self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
         self.run('bash -c "which make.exe"')
