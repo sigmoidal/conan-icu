@@ -338,12 +338,12 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
         #env_build = AutoToolsBuildEnvironment(self)
         #with tools.environment_append(env_build.vars):
 
-        self.run("pacman -Syuu --noconfirm")
+        #self.run("pacman -Syuu --noconfirm")
 
         os.mkdir(self.cfg['build_dir'])
 
@@ -373,16 +373,16 @@ class IcuConan(ConanFile):
         # Builds may get stuck when using multiple CPUs in Debug mode
         #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
 
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                               builddir=self.cfg['build_dir'],
                                                                                               silent=self.cfg['silent'],
                                                                                               cpus_var=tools.cpu_count()))
         if self.options.with_unit_tests:
-            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                           builddir=self.cfg['build_dir'],
                                                                                           silent=self.cfg['silent']))
 
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                          builddir=self.cfg['build_dir'],
                                                                                          silent=self.cfg['silent']))
 
