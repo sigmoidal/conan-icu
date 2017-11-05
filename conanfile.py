@@ -330,43 +330,20 @@ class IcuConan(ConanFile):
     def build_msys(self):
         self.cfg['platform'] = 'MSYS/MSVC'
 
-        new_path = os.environ['PATH'] + os.pathsep + self.deps_env_info['msys2_installer'].MSYS_BIN
-
         if 'MSYS_ROOT' not in os.environ:
             os.environ['MSYS_ROOT'] = self.deps_env_info["msys2_installer"].MSYS_ROOT
-            self.output.info("Assigned MSYS_ROOT")
-        else:
-            self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
         if 'MSYS_ROOT' not in os.environ:
             raise Exception("MSYS_ROOT environment variable must be set.")
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
+        new_path = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+
         with tools.environment_append({'PATH': new_path}):
 
-            #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
-            #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'])
-            #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr')
-            #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-            #os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'mingw64', 'bin')
-
-            self.output.info("New Environment PATH: %s" % os.environ['PATH'])
-
-            self.run('bash -c "which make"')
-            self.run('bash -c "which pacman"')
-            self.run('bash -c ^"pacman -S base-devel --needed --noconfirm^"')
-
-            env_build = AutoToolsBuildEnvironment(self)
-            self.output.warn(str(env_build.vars))
-
-            self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
-            self.run('bash -c "which make.exe"')
-
-            self.run('bash -c "/usr/bin/make --version"')
-            self.run('make.exe --version')
-
-
+            #env_build = AutoToolsBuildEnvironment(self)
+            #self.output.warn(str(env_build.vars))
 
             os.mkdir(self.cfg['build_dir'])
 
