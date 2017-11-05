@@ -331,6 +331,7 @@ class IcuConan(ConanFile):
         self.cfg['platform'] = 'MSYS/MSVC'
 
         self.output.warn("===== >>>> make before msys: " + str(tools.which("make.exe")))
+        self.output.warn("===== >>>> make before msys: " + self.run('bash -c "which make.exe"'))
 
         if 'MSYS_ROOT' not in os.environ:
             os.environ['MSYS_ROOT'] = self.deps_env_info["msys2_installer"].MSYS_ROOT
@@ -343,6 +344,7 @@ class IcuConan(ConanFile):
         os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin').replace('\\', '/')
 
         self.output.warn("===== >>>> make after msys: " + str(tools.which("make.exe")))
+        self.output.warn("===== >>>> make after msys: " + self.run('bash -c "which make.exe"'))
 
         self.output.info("New Environment PATH: %s" % os.environ['PATH'])
 
