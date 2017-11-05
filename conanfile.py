@@ -338,17 +338,10 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+
         env_build = AutoToolsBuildEnvironment(self)
-
-        new_path = env_build.vars['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-
-
-
-
-        with tools.environment_append({'PATH': new_path}):
-
-            #env_build = AutoToolsBuildEnvironment(self)
-            #self.output.warn(str(env_build.vars))
+        with tools.environment_append(env_build):
 
             self.run("pacman -Syuu --noconfirm")
 
