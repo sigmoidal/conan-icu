@@ -198,7 +198,6 @@ class IcuConan(ConanFile):
                 os.mkdir(self.cfg['build_dir'])
 
 
-                
                 config_cmd = self.build_config_cmd()
 
                 #with tools.environment_append(env_build.vars):                                                                                                     
