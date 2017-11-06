@@ -342,10 +342,10 @@ class IcuConan(ConanFile):
         newPath = ""
         newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep
 
-        pathList = os.environ['PATH'].split(";")
-        for p in pathList:
-            if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
-                newPath +=  p + os.pathsep
+        #pathList = os.environ['PATH'].split(";")
+        #for p in pathList:
+        #    if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
+        #        newPath +=  p + os.pathsep
 
         #newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
