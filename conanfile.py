@@ -337,24 +337,22 @@ class IcuConan(ConanFile):
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
         # Remove this from the path: "C:\Program Files\Git\usr\bin"
-        newPath = ""
+        #newPath = ""
 
-        pathList = os.environ['PATH'].split(";")
-        for p in pathList:
-            if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
-                newPath +=  p + os.pathsep
+        #pathList = os.environ['PATH'].split(";")
+        #for p in pathList:
+        #    if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
+        #        newPath +=  p + os.pathsep
 
-        newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-
-        self.output.warn("LINK Binary: " + tools.which("link.exe"))
+        #newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
         #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-        os.environ['PATH'] = newPath
+        #os.environ['PATH'] = newPath
 
-        self.output.info("New ENV PATH: %s" % os.environ['PATH'])
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
-        #env_build = AutoToolsBuildEnvironment(self)
-        #with tools.environment_append(env_build.vars):
+        self.output.warn("Using Linker: " + tools.which("link.exe"))
+        self.output.info("Using PATH: %s" % os.environ['PATH'])
 
         #self.run("pacman -Syuu --noconfirm")
 
