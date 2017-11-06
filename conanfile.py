@@ -6,12 +6,8 @@ import shutil
 #
 # Refer to http://userguide.icu-project.org/icudata for the data_packaging option
 #
-# Note that the MSVC builds with msvc_platform=visual_studio cannot do static ICU builds
+# Note that Visual Studio (sln) builds have been removed, since they cannot generate static builds.
 # The default platform for building MSVC binaries is MSYS (msvc_platform=msys)
-#
-# If you're building with Cygwin, the environment variable CYGWIN_ROOT must be present in your environment
-#
-# If you're building with MSYS, the environment variable MSYS_ROOT must be present in your environment
 #
 # examples:
 #
@@ -47,7 +43,7 @@ class IcuConan(ConanFile):
     data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,version.replace('.', '_'))
 
     options = {"shared": [True, False],
-               "msvc_platform": ["msys", "visual_studio", "cygwin"],
+               "msvc_platform": ["msys", "cygwin"],
                "data_packaging": ["shared", "static", "files", "archive"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
@@ -78,17 +74,13 @@ class IcuConan(ConanFile):
                 self.build_requires("msys2_installer/latest@bincrafters/testing")
 
     def source(self):
-        archive_type = "zip"
-        if self.settings.os != 'Windows' or self.options.msvc_platform != 'visual_studio':
-            archive_type = "tgz"
-
-        self.output.info("Fetching sources: {0}.{1}".format(self.source_url, archive_type))
+        self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
         
-        tools.get("{0}.{1}".format(self.source_url, archive_type))
+        tools.get("{0}.tgz".format(self.source_url))
         
         src_folder = os.getcwd()
 
-        # update the outdated config.guess and config.sub
+        # update the outdated config.guess and config.sub included in ICU
         config_updates = [ 'config.guess', 'config.sub' ]
         for cfg_update in config_updates:
             dst_config = os.path.join(src_folder, self.name, 'source', cfg_update)
@@ -102,20 +94,15 @@ class IcuConan(ConanFile):
         # need to download and merge them separately.
         # http://bugs.icu-project.org/trac/ticket/13139
         #
-        if archive_type == "tgz":
-            data_web_file = "{0}.zip".format(self.data_url)
-            self.output.info('Fetching data: %s' % data_web_file)
-            tools.get(data_web_file)
-            
-            icu_datadir = os.path.join(src_folder, self.name, 'source', 'data')
-            downloaded_icu_datadir = os.path.join(src_folder,'data')
-            
-            shutil.rmtree(icu_datadir)
-            os.rename(downloaded_icu_datadir, icu_datadir)
+        data_web_file = "{0}.zip".format(self.data_url)
+        self.output.info('Fetching data: %s' % data_web_file)
+        tools.get(data_web_file)
 
-        #tools.replace_in_file(os.path.join(src_path,'data','makedata.mak'),
-        #                      r'GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"',
-        #                      r'GODATA "$(ICU_LIB_TARGET)"')
+        icu_datadir = os.path.join(src_folder, self.name, 'source', 'data')
+        downloaded_icu_datadir = os.path.join(src_folder,'data')
+
+        shutil.rmtree(icu_datadir)
+        os.rename(downloaded_icu_datadir, icu_datadir)
         
     def build(self):    
         root_path = self.conanfile_directory
@@ -131,7 +118,6 @@ class IcuConan(ConanFile):
                 tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % runtime)
             if self.settings.build_type == 'Debug':
                 tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % runtime)
-
         else:
             # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
             runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
@@ -152,117 +138,49 @@ class IcuConan(ConanFile):
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
             
         if self.settings.os == 'Windows':
-
             # this overrides pre-configured environments (such as Appveyor's)
             if "VisualStudioVersion" in os.environ:
                 del os.environ["VisualStudioVersion"]
-            self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
+            self.cfg['vccmd'] = tools.vcvars_command(self.settings)
 
-            self.output.info("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
-            self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
+            #self.output.info("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
+            #self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
             if self.options.msvc_platform == 'cygwin':
                 self.build_cygwin()
             elif self.options.msvc_platform == 'msys':
                 self.build_msys()
-            else:
-                sln_file = os.path.join(src_path,"allinone","allinone.sln")
-                targets = ["i18n","common","pkgdata"]
-                #if self.options.with_io:
-                #    targets.append('io')
-                build_command = tools.build_sln_command(self.settings, sln_file, targets=targets, upgrade_project=False)
-                build_command = build_command.replace('"x86"','"Win32"')
-                command = "{0} && {1}".format(self.cfg['vcvars_command'], build_command)
-                self.run(command)
-                cfg = 'x64' if self.settings.arch == 'x86_64' else 'x86'
-                cfg += "\\"+str(self.settings.build_type)
-                data_dir = src_path+"\\data"
-                bin_dir = data_dir+"\\..\\..\\bin"
-                if self.settings.arch == 'x86_64':
-                    bin_dir += '64'
-                makedata = '{vccmd} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(vccmd=self.cfg['vcvars_command'],
-                                                                                                                      datadir=data_dir,
-                                                                                                                      cfg=cfg)
-                self.output.info(makedata)
-                self.run(makedata)
         else:
-            env_build = AutoToolsBuildEnvironment(self)
-            with tools.environment_append(env_build.vars):
-                if self.settings.os == 'Linux':
-                    if self.settings.compiler == 'gcc':
-                        self.cfg['platform'] = 'Linux/gcc'
-                    else:
-                        self.cfg['platform'] = 'Linux'
-                elif self.settings.os == 'Macos':
-                    self.cfg['platform'] = 'MacOSX'
-
-                os.mkdir(self.cfg['build_dir'])
-
-
-                config_cmd = self.build_config_cmd()
-
-                #with tools.environment_append(env_build.vars):                                                                                                     
-                self.run("cd {builddir} && bash {config_cmd}".format(builddir=self.cfg['build_dir'],
-                                                                     config_cmd=config_cmd))
-                    
-                self.run("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
-                                                                               cpus_var=tools.cpu_count(), 
-                                                                               silent=self.cfg['silent']))
-                   
-                if self.options.with_unit_tests:
-                    self.run("cd {builddir} && make {silent} check".format(builddir=self.cfg['build_dir'],
-                                                                           silent=self.cfg['silent']))
-                    
-                self.run("cd {builddir} && make {silent} install".format(builddir=self.cfg['build_dir'],
-                                                                         silent=self.cfg['silent']))
-
-                if self.settings.os == 'Macos':
-                    with tools.chdir('output/lib'):
-                        for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
-                            self.run('install_name_tool -id {0} {1}'.format(
-                                os.path.basename(dylib), dylib))
+            self.build_unix()
 
     def package(self):
+        bin_dir_src, include_dir_src, lib_dir_src, share_dir_src = (os.path.join('output', path) for path in
+                                                                    ('bin', 'include', 'lib', 'share'))
         if self.settings.os == 'Windows':
-            bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
-            if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys' or self.options.msvc_platform == 'any':
-                bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in ('bin', 'include', 'lib', 'share'))
-                
-                # we copy everything for a full ICU package
-                self.copy("*", dst=bin_dir_dst, src=bin_dir, keep_path=True, symlinks=True)
-                self.copy(pattern='*.dll', dst=bin_dir_dst, src=lib_dir, keep_path=False)
-                
-                self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
-                self.copy("*", dst=lib_dir_dst, src=lib_dir, keep_path=True, symlinks=True)
-                self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
-            else:
-                include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in ('include', bin_dir, lib_dir))
-                self.output.info('include_dir = {0}'.format(include_dir))
-                self.output.info('bin_dir = {0}'.format(bin_dir))
-                self.output.info('lib_dir = {0}'.format(lib_dir))
-                self.copy(pattern='*.h', dst='include', src=include_dir, keep_path=True)
-                self.copy(pattern='*.lib', dst='lib', src=lib_dir, keep_path=False)
-                self.copy(pattern='*.exp', dst='lib', src=lib_dir, keep_path=False)
-                self.copy(pattern='*.dll', dst='lib', src=bin_dir, keep_path=False)
-        else:
-            #libs = ['i18n', 'uc', 'data']
-            #if self.options.with_io:
-            #    libs.append('io')
-            #for lib in libs:
-            #    self.copy(pattern="*icu{0}*.dylib".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
-            #    self.copy(pattern="*icu{0}.so*".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
-
-            bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in ('bin', 'include', 'lib', 'share'))
+            bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin', 'lib')
 
             # we copy everything for a full ICU package
-            self.copy("*", dst="bin", src=bin_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
+            self.copy("*", dst=bin_dir_dst, src=bin_dir_src, keep_path=True, symlinks=True)
+            self.copy(pattern='*.dll', dst=bin_dir_dst, src=lib_dir_src, keep_path=False)
+            self.copy("*", dst=lib_dir_dst, src=lib_dir_src, keep_path=True, symlinks=True)
+
+            # lets remove .dlls from the lib dir, they are in bin/ in upstream releases.
+            for item in os.listdir(lib_dir_dst):
+                if item.endswith(".dll"):
+                    os.remove(os.path.join(lib_dir_dst, item))
+
+            self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
+        else:
+            # we copy everything for a full ICU package
+            self.copy("*", dst="bin", src=bin_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="lib", src=lib_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
 
     def package_id(self):
         # Whether we built with Cygwin or MSYS shouldn't affect the package id
-        if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys" or self.options.msvc_platform == "visual_studio":
+        if self.options.msvc_platform == "cygwin" or self.options.msvc_platform == "msys":
             self.info.options.msvc_platform = "any"
 
         # ICU unit testing shouldn't affect the package's ID
@@ -307,14 +225,17 @@ class IcuConan(ConanFile):
 
             
     def build_config_cmd(self):   
-        config_cmd = "../source/runConfigureICU {enable_debug} {platform} {host} {lib_arch_bits} {outdir} {enable_static} {data_packaging} {general}".format(enable_debug=self.cfg['enable_debug'], 
-                                                                                                                                                             platform=self.cfg['platform'], 
-                                                                                                                                                             host=self.cfg['host'], 
-                                                                                                                                                             lib_arch_bits='--with-library-bits=%s' % self.cfg['arch_bits'],
-                                                                                                                                                             outdir='--prefix=%s' % self.cfg['output_dir'], 
-                                                                                                                                                             enable_static=self.cfg['enable_static'], 
-                                                                                                                                                             data_packaging=self.cfg['data_packaging'], 
-                                                                                                                                                             general=self.cfg['general_opts'])
+        config_cmd = "../source/runConfigureICU {enable_debug} " \
+                     "{platform} {host} {lib_arch_bits} {outdir} " \
+                     "{enable_static} {data_packaging} {general}" \
+                     "".format(enable_debug=self.cfg['enable_debug'],
+                               platform=self.cfg['platform'],
+                               host=self.cfg['host'],
+                               lib_arch_bits='--with-library-bits=%s' % self.cfg['arch_bits'],
+                               outdir='--prefix=%s' % self.cfg['output_dir'],
+                               enable_static=self.cfg['enable_static'],
+                               data_packaging=self.cfg['data_packaging'],
+                               general=self.cfg['general_opts'])
                                                                                                                                                                                       
         return config_cmd
 
@@ -328,7 +249,9 @@ class IcuConan(ConanFile):
         # We patch the respective Makefile.in, to disable building it for MSYS
         #
         escapesrc_patch = os.path.join(self.conanfile_directory, self.name,'source','tools','Makefile.in')
-        tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
+        tools.replace_in_file(escapesrc_patch,
+                              'SUBDIRS += escapesrc',
+                              '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
     def build_msys(self):
         self.cfg['platform'] = 'MSYS/MSVC'
@@ -356,7 +279,7 @@ class IcuConan(ConanFile):
         # as of 59.1 this is necessary for building with MSYS
         self.msys_patch()
 
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vccmd'],
                                                                                  builddir=self.cfg['build_dir'],
                                                                                  config_cmd=config_cmd))
 
@@ -365,16 +288,16 @@ class IcuConan(ConanFile):
         # Builds may get stuck when using multiple CPUs in Debug mode
         #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
 
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vccmd'],
                                                                                                 builddir=self.cfg['build_dir'],
                                                                                                 silent=self.cfg['silent'],
                                                                                                 cpus_var=tools.cpu_count()))
         if self.options.with_unit_tests:
-            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vcvars_command'],
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vccmd'],
                                                                                             builddir=self.cfg['build_dir'],
                                                                                             silent=self.cfg['silent']))
 
-        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vccmd'],
                                                                                           builddir=self.cfg['build_dir'],
                                                                                           silent=self.cfg['silent']))
 
@@ -400,24 +323,56 @@ class IcuConan(ConanFile):
         self.output.info("Starting configuration.")
 
         config_cmd = self.build_config_cmd()
-        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vccmd'],
                                                                              builddir=self.cfg['build_dir'],
                                                                              config_cmd=config_cmd))
 
         self.output.info("Starting built.")
 
 
-        self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vccmd'],
                                                                                   builddir=self.cfg['build_dir'],
                                                                                   silent=self.cfg['silent'],
                                                                                   cpus_var=tools.cpu_count()))
         if self.options.with_unit_tests:
-            self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+            self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vccmd'],
                                                                               builddir=self.cfg['build_dir'],
                                                                               silent=self.cfg['silent']))
 
-        self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vccmd'],
                                                                             builddir=self.cfg['build_dir'],
                                                                             silent=self.cfg['silent']))
             
-            
+
+    def build_unix(self):
+        env_build = AutoToolsBuildEnvironment(self)
+        with tools.environment_append(env_build.vars):
+            if self.settings.os == 'Linux':
+                self.cfg['platform'] = 'Linux/gcc' if str(self.settings.compiler).startswith('gcc') else 'Linux'
+            elif self.settings.os == 'Macos':
+                self.cfg['platform'] = 'MacOSX'
+
+            os.mkdir(self.cfg['build_dir'])
+
+            config_cmd = self.build_config_cmd()
+
+            # with tools.environment_append(env_build.vars):
+            self.run("cd {builddir} && bash {config_cmd}".format(builddir=self.cfg['build_dir'],
+                                                                 config_cmd=config_cmd))
+
+            self.run("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
+                                                                           cpus_var=tools.cpu_count(),
+                                                                           silent=self.cfg['silent']))
+
+            if self.options.with_unit_tests:
+                self.run("cd {builddir} && make {silent} check".format(builddir=self.cfg['build_dir'],
+                                                                       silent=self.cfg['silent']))
+
+            self.run("cd {builddir} && make {silent} install".format(builddir=self.cfg['build_dir'],
+                                                                     silent=self.cfg['silent']))
+
+            if self.settings.os == 'Macos':
+                with tools.chdir('output/lib'):
+                    for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
+                        self.run('install_name_tool -id {0} {1}'.format(
+                            os.path.basename(dylib), dylib))
