@@ -377,6 +377,9 @@ class IcuConan(ConanFile):
             self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
             self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
+            if self.cfg['vcvars_command'] == "Conan:vcvars already set":
+                self.cfg['vcvars_command'] = ""
+
             config_cmd = self.build_config_cmd()
 
             # as of 59.1 this is necessary for building with MSYS
@@ -419,9 +422,6 @@ class IcuConan(ConanFile):
         self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
 
         self.output.info("Starting configuration.")
-
-        if self.cfg['vcvars_command'] == "Conan:vcvars already set":
-            self.cfg['vcvars_command'] = ""
 
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(env_build.vars):
