@@ -1,42 +1,44 @@
 build: off
 
-# Attention: ICU > 59.1 does no longer support compilers older than VS 2015
 image:
-#  - Visual Studio 2015
+  #- Visual Studio 2015
   - Visual Studio 2017
 
 platform:
-  #- x86
+  - x86
   - x64
 
 configuration:
-#- Debug
-- Release
+  - Debug
+  - Release
 
 environment:
     PYTHON: "C:\\Python27"
     PYTHON_VERSION: "2.7.8"
     PYTHON_ARCH: "32"
 
-    CYGWIN_ROOT: "C:\\cygwin64"
-    MSYS_ROOT: "C:\\msys64"
+    #CYGWIN_ROOT: "C:\\cygwin64"
+    #MSYS_ROOT: "C:\\msys64"
+
+    CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
 
     matrix:
+        ## Attention: ICU > 59.1 does no longer support compilers older than VS 2015
         - CONAN_ICU_MSVC_PLATFORM: cygwin
           CONAN_ICU_SHARED: True
 
         - CONAN_ICU_MSVC_PLATFORM: cygwin
           CONAN_ICU_SHARED: False
 
-        #- CONAN_ICU_MSVC_PLATFORM: msys
-        #  CONAN_ICU_SHARED: True
+        - CONAN_ICU_MSVC_PLATFORM: msys
+          CONAN_ICU_SHARED: True
 
-        #- CONAN_ICU_MSVC_PLATFORM: msys
-        #  CONAN_ICU_SHARED: False
+        - CONAN_ICU_MSVC_PLATFORM: msys
+          CONAN_ICU_SHARED: False
 
+# Enable for RDP
 #init:
 #  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 #on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 

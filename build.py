@@ -31,9 +31,6 @@ if __name__ == "__main__":
     if "CONAN_ICU_SHARED" in os.environ:
         conan_build_options.update({"icu:shared": True if strtobool(os.environ["CONAN_ICU_SHARED"]) else False})
 
-    #if "CONAN_ICU_WITH_DATA" in os.environ:
-    conan_build_options.update({"icu:with_data": True})
-
     if "CONAN_ICU_DATA_PACKAGING" in os.environ:
         conan_build_options.update({"icu:data_packaging": os.environ["CONAN_ICU_DATA_PACKAGING"]})
 
