@@ -369,41 +369,39 @@ class IcuConan(ConanFile):
         #env_build = AutoToolsBuildEnvironment(self)
         #if self.settings.build_type == 'Debug':
         #    env_build.cxx_flags.append("-FS")
-        env_build = AutoToolsBuildEnvironment(self)
-        with tools.environment_append(env_build.vars):
 
-            self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
-            self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
-            self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
+        self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
+        self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
+        self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
-            config_cmd = self.build_config_cmd()
+        config_cmd = self.build_config_cmd()
 
-            # as of 59.1 this is necessary for building with MSYS
-            self.msys_patch()
+        # as of 59.1 this is necessary for building with MSYS
+        self.msys_patch()
 
 
-            #with tools.environment_append(env_build.vars):
-            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                     builddir=self.cfg['build_dir'],
-                                                                                     config_cmd=config_cmd))
+        #with tools.environment_append(env_build.vars):
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                 builddir=self.cfg['build_dir'],
+                                                                                 config_cmd=config_cmd))
 
 
 
-            # Builds may get stuck when using multiple CPUs in Debug mode
-            #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
+        # Builds may get stuck when using multiple CPUs in Debug mode
+        #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
 
-            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                                  builddir=self.cfg['build_dir'],
-                                                                                                  silent=self.cfg['silent'],
-                                                                                                  cpus_var=tools.cpu_count()))
-            if self.options.with_unit_tests:
-                self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                               builddir=self.cfg['build_dir'],
-                                                                                              silent=self.cfg['silent']))
+                                                                                              silent=self.cfg['silent'],
+                                                                                              cpus_var=tools.cpu_count()))
+        if self.options.with_unit_tests:
+            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                          builddir=self.cfg['build_dir'],
+                                                                                          silent=self.cfg['silent']))
 
-            self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                             builddir=self.cfg['build_dir'],
-                                                                                             silent=self.cfg['silent']))
+        self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vcvars_command'],
+                                                                                         builddir=self.cfg['build_dir'],
+                                                                                         silent=self.cfg['silent']))
 
 
     def build_cygwin(self):
