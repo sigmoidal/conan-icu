@@ -338,7 +338,17 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        # Remove this from the path: "C:\Program Files\Git\usr\bin"
+        newPath = ""
+        pathList = os.environ['PATH'].split(";")
+        for p in pathList:
+            if p != "C:\\Program Files\\Git\\usr\\bin":
+                newPath +=  p + os.pathsep
+
+        newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+
+        #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        os.environ['PATH'] = newPath
 
         #env_build = AutoToolsBuildEnvironment(self)
         #with tools.environment_append(env_build.vars):
