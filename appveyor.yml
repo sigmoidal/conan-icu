@@ -1,7 +1,7 @@
 build: off
 
 image:
-  - Previous Visual Studio 2015
+  #- Previous Visual Studio 2015
   - Previous Visual Studio 2017
 
 platform:
@@ -44,7 +44,7 @@ on_finish:
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
-  - pip.exe install conan==0.27.0
+  - pip.exe install conan --upgrade
   - pip.exe install conan_package_tools
   - conan user # It creates the conan data directory
 
