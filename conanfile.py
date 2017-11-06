@@ -340,9 +340,7 @@ class IcuConan(ConanFile):
         newPath = ""
         newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep
 
-        self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
-        self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
-        self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
+
 
         #pathList = os.environ['PATH'].split(";")
         #for p in pathList:
@@ -374,6 +372,11 @@ class IcuConan(ConanFile):
         #    env_build.cxx_flags.append("-FS")
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(env_build.vars):
+
+            self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
+            self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
+            self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
+
             config_cmd = self.build_config_cmd()
 
             # as of 59.1 this is necessary for building with MSYS
