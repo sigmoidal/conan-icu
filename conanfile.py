@@ -313,6 +313,17 @@ class IcuConan(ConanFile):
                                                                                                                                                                                       
         return config_cmd
 
+    def _cleanup_path(self):
+        # Remove from env PATH: "C:\Program Files\Git\usr\bin"
+        newPath = ""
+
+        pathList = os.environ['PATH'].split(";")
+        for p in pathList:
+            if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
+                newPath +=  p + os.pathsep
+
+        os.environ['PATH'] = newPath
+
     def msys_patch(self):
         # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:
         #
@@ -324,7 +335,7 @@ class IcuConan(ConanFile):
         #
         escapesrc_patch = os.path.join(self.conanfile_directory, self.name,'source','tools','Makefile.in')
         tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc', '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
-        
+
     def build_msys(self):
         self.cfg['platform'] = 'MSYS/MSVC'
 
@@ -336,20 +347,9 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        # Remove this from the path: "C:\Program Files\Git\usr\bin"
-        #newPath = ""
+        #self._cleanup_path()
 
-        #pathList = os.environ['PATH'].split(";")
-        #for p in pathList:
-        #    if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
-        #        newPath +=  p + os.pathsep
-
-        #newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-
-        #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
-        #os.environ['PATH'] = newPath
-
-        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        os.environ['PATH'] = os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep + os.environ['PATH']
 
         self.output.warn("Using Linker: " + tools.which("link.exe"))
         self.output.info("Using PATH: %s" % os.environ['PATH'])
@@ -368,7 +368,9 @@ class IcuConan(ConanFile):
         #if self.settings.build_type == 'Debug':
         #    env_build.cxx_flags.append("-FS")
 
+        del os.environ["VisualStudioVersion"]
         self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
+
         self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
         self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
