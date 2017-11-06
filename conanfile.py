@@ -154,7 +154,8 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
 
             # this overrides pre-configured environments (such as Appveyor's)
-            del os.environ["VisualStudioVersion"]
+            if "VisualStudioVersion" in os.environ:
+                del os.environ["VisualStudioVersion"]
             self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
 
             self.output.info("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
