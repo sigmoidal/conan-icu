@@ -399,27 +399,25 @@ class IcuConan(ConanFile):
 
         self.output.info("Starting configuration.")
 
-        env_build = AutoToolsBuildEnvironment(self)
-        with tools.environment_append(env_build.vars):
-            config_cmd = self.build_config_cmd()
-            self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                 builddir=self.cfg['build_dir'],
-                                                                                 config_cmd=config_cmd))
+        config_cmd = self.build_config_cmd()
+        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vcvars_command'],
+                                                                             builddir=self.cfg['build_dir'],
+                                                                             config_cmd=config_cmd))
 
-            self.output.info("Starting built.")
+        self.output.info("Starting built.")
 
 
-            self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
-                                                                                      builddir=self.cfg['build_dir'],
-                                                                                      silent=self.cfg['silent'],
-                                                                                      cpus_var=tools.cpu_count()))
-            if self.options.with_unit_tests:
-                self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+        self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vcvars_command'],
                                                                                   builddir=self.cfg['build_dir'],
-                                                                                  silent=self.cfg['silent']))
+                                                                                  silent=self.cfg['silent'],
+                                                                                  cpus_var=tools.cpu_count()))
+        if self.options.with_unit_tests:
+            self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vcvars_command'],
+                                                                              builddir=self.cfg['build_dir'],
+                                                                              silent=self.cfg['silent']))
 
-            self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vcvars_command'],
-                                                                                builddir=self.cfg['build_dir'],
-                                                                                silent=self.cfg['silent']))
+        self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vcvars_command'],
+                                                                            builddir=self.cfg['build_dir'],
+                                                                            silent=self.cfg['silent']))
             
             
