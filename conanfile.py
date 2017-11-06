@@ -385,9 +385,14 @@ class IcuConan(ConanFile):
         self.cfg['platform'] = 'Cygwin/MSVC'
        
         if 'CYGWIN_ROOT' not in os.environ:
+            os.environ['CYGWIN_ROOT'] = self.deps_env_info["cygwin_installer"].CYGWIN_ROOT
+
+        if 'CYGWIN_ROOT' not in os.environ:
             raise Exception("CYGWIN_ROOT environment variable must be set.")
         else:
             self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
+
+        os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep +os.environ['PATH']
 
         os.mkdir(self.cfg['build_dir'])
         self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
