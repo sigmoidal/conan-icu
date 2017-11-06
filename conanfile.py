@@ -154,8 +154,8 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             
             self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
-
-            self.output.info("Environment PATH: %s" % os.environ['PATH'])
+            self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'] )
+            self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
             if self.options.msvc_platform == 'cygwin':
                 self.build_cygwin()
@@ -342,7 +342,7 @@ class IcuConan(ConanFile):
         newPath = ""
         pathList = os.environ['PATH'].split(";")
         for p in pathList:
-            if p != "C:\\Program Files\\Git\\usr\\bin":
+            if p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
                 newPath +=  p + os.pathsep
 
         newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
