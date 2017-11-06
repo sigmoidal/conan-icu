@@ -1,3 +1,4 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/mm27s515gpx3io09?svg=true)](https://ci.appveyor.com/project/sigmoidal/conan-icu)
 
 ## Conan recipe for IBM ICU.
 

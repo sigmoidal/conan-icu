@@ -165,9 +165,9 @@ class IcuConan(ConanFile):
             self.copy("*", dst=lib_dir_dst, src=lib_dir_src, keep_path=True, symlinks=True)
 
             # lets remove .dlls from the lib dir, they are in bin/ in upstream releases.
-            for item in os.listdir(lib_dir_dst):
+            for item in os.listdir(os.path.join(self.package_folder, lib_dir_dst)):
                 if item.endswith(".dll"):
-                    os.remove(os.path.join(lib_dir_dst, item))
+                    os.remove(os.path.join(self.package_folder, lib_dir_dst, item))
 
             self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
             self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
