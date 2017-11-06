@@ -420,6 +420,9 @@ class IcuConan(ConanFile):
 
         self.output.info("Starting configuration.")
 
+        if self.cfg['vcvars_command'] == "Conan:vcvars already set":
+            self.cfg['vcvars_command'] = ""
+
         env_build = AutoToolsBuildEnvironment(self)
         with tools.environment_append(env_build.vars):
             config_cmd = self.build_config_cmd()
