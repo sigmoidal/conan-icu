@@ -18,7 +18,7 @@ environment:
     PYTHON_ARCH: "32"
 
     #CYGWIN_ROOT: "C:\\cygwin64"
-    MSYS_ROOT: "C:\\msys64"
+    #MSYS_ROOT: "C:\\msys64"
 
     CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
 
@@ -37,10 +37,10 @@ environment:
           CONAN_ICU_SHARED: False
 
 # Enable for RDP
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#init:
+#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
