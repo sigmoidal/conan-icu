@@ -350,6 +350,8 @@ class IcuConan(ConanFile):
         #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
         os.environ['PATH'] = newPath
 
+        self.output.info("New ENV PATH: %s" % os.environ['PATH'])
+
         #env_build = AutoToolsBuildEnvironment(self)
         #with tools.environment_append(env_build.vars):
 
