@@ -338,16 +338,15 @@ class IcuConan(ConanFile):
 
         # Remove this from the path: "C:\Program Files\Git\usr\bin"
         newPath = ""
-        newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep
 
+        pathList = os.environ['PATH'].split(";")
+        for p in pathList:
+            if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
+                newPath +=  p + os.pathsep
 
+        newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
 
-        #pathList = os.environ['PATH'].split(";")
-        #for p in pathList:
-        #    if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
-        #        newPath +=  p + os.pathsep
-
-        #newPath += os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
+        self.output.warn("LINK Binary: " + tools.which("link.exe"))
 
         #os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin')
         os.environ['PATH'] = newPath
@@ -377,9 +376,6 @@ class IcuConan(ConanFile):
             self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
             self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
-            if self.cfg['vcvars_command'] == "Conan:vcvars already set":
-                self.cfg['vcvars_command'] = ""
-
             config_cmd = self.build_config_cmd()
 
             # as of 59.1 this is necessary for building with MSYS
@@ -388,8 +384,8 @@ class IcuConan(ConanFile):
 
             #with tools.environment_append(env_build.vars):
             self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                                    builddir=self.cfg['build_dir'],
-                                                                                                    config_cmd=config_cmd))
+                                                                                     builddir=self.cfg['build_dir'],
+                                                                                     config_cmd=config_cmd))
 
 
 
