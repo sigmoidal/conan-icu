@@ -1,7 +1,7 @@
 build: off
 
 image:
-  #- Previous Visual Studio 2015
+  #- Visual Studio 2015
   - Visual Studio 2017
 
 platform:
@@ -37,10 +37,10 @@ environment:
           CONAN_ICU_SHARED: False
 
 # Enable for RDP
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#init:
+#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
