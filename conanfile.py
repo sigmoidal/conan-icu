@@ -341,10 +341,8 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        os.environ['PATH'] = os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep + os.environ['PATH']
-
-        #self.output.info("Using Linker: " + tools.which("link.exe"))
-        #self.output.info("Using PATH: %s" % os.environ['PATH'])
+        os.environ['PATH'] = os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep + \
+                             os.environ['PATH']
 
         os.mkdir(self.cfg['build_dir'])
 
@@ -392,7 +390,9 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
 
-        os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep +os.environ['PATH']
+        os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + \
+                             os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
+                             os.environ['PATH']
 
         os.mkdir(self.cfg['build_dir'])
         self.cfg['output_dir'] = self.cfg['output_dir'].replace('\\', '/')
