@@ -152,8 +152,13 @@ class IcuConan(ConanFile):
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
             
         if self.settings.os == 'Windows':
-            
 
+            # this overrides pre-configured environments (such as Appveyor's)
+            del os.environ["VisualStudioVersion"]
+            self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
+
+            self.output.info("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
+            self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
 
             if self.options.msvc_platform == 'cygwin':
                 self.build_cygwin()
@@ -313,17 +318,6 @@ class IcuConan(ConanFile):
                                                                                                                                                                                       
         return config_cmd
 
-    def _cleanup_path(self):
-        # Remove from env PATH: "C:\Program Files\Git\usr\bin"
-        newPath = ""
-
-        pathList = os.environ['PATH'].split(";")
-        for p in pathList:
-            if p != "C:\\Program Files\\Git" and p != "C:\\Program Files\\Git\\usr\\bin" and p != "C:\\Program Files\\Git\\cmd":
-                newPath +=  p + os.pathsep
-
-        os.environ['PATH'] = newPath
-
     def msys_patch(self):
         # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:
         #
@@ -347,14 +341,10 @@ class IcuConan(ConanFile):
         else:
             self.output.info("Using MSYS from: " + os.environ["MSYS_ROOT"])
 
-        #self._cleanup_path()
-
         os.environ['PATH'] = os.path.join(os.environ['MSYS_ROOT'], 'usr', 'bin') + os.pathsep + os.environ['PATH']
 
-        self.output.warn("Using Linker: " + tools.which("link.exe"))
-        self.output.info("Using PATH: %s" % os.environ['PATH'])
-
-        #self.run("pacman -Syuu --noconfirm")
+        #self.output.info("Using Linker: " + tools.which("link.exe"))
+        #self.output.info("Using PATH: %s" % os.environ['PATH'])
 
         os.mkdir(self.cfg['build_dir'])
 
@@ -363,24 +353,11 @@ class IcuConan(ConanFile):
 
         self.cfg['host'] = '--host=i686-pc-mingw{0}'.format(self.cfg['arch_bits'])
 
-        # If you enable the stuff below => builds may start to stall when building x86/static/Debug
-        #env_build = AutoToolsBuildEnvironment(self)
-        #if self.settings.build_type == 'Debug':
-        #    env_build.cxx_flags.append("-FS")
-
-        del os.environ["VisualStudioVersion"]
-        self.cfg['vcvars_command'] = tools.vcvars_command(self.settings)
-
-        self.output.warn("\n\nvcvars_command: %s\n\n" % self.cfg['vcvars_command'])
-        self.output.info("\n\nEnvironment PATH: %s\n\n" % os.environ['PATH'])
-
         config_cmd = self.build_config_cmd()
 
         # as of 59.1 this is necessary for building with MSYS
         self.msys_patch()
 
-
-        #with tools.environment_append(env_build.vars):
         self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& {config_cmd}^'".format(vccmd=self.cfg['vcvars_command'],
                                                                                  builddir=self.cfg['build_dir'],
                                                                                  config_cmd=config_cmd))
@@ -391,17 +368,17 @@ class IcuConan(ConanFile):
         #cpus = tools.cpu_count() if self.settings.build_type == 'Release' else '1'
 
         self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} -j {cpus_var}^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                              builddir=self.cfg['build_dir'],
-                                                                                              silent=self.cfg['silent'],
-                                                                                              cpus_var=tools.cpu_count()))
+                                                                                                builddir=self.cfg['build_dir'],
+                                                                                                silent=self.cfg['silent'],
+                                                                                                cpus_var=tools.cpu_count()))
         if self.options.with_unit_tests:
             self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} check^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                          builddir=self.cfg['build_dir'],
-                                                                                          silent=self.cfg['silent']))
+                                                                                            builddir=self.cfg['build_dir'],
+                                                                                            silent=self.cfg['silent']))
 
         self.run("{vccmd} && bash -c ^'cd {builddir} ^&^& make {silent} install^'".format(vccmd=self.cfg['vcvars_command'],
-                                                                                         builddir=self.cfg['build_dir'],
-                                                                                         silent=self.cfg['silent']))
+                                                                                          builddir=self.cfg['build_dir'],
+                                                                                          silent=self.cfg['silent']))
 
 
     def build_cygwin(self):
