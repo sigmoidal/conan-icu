@@ -1,20 +1,11 @@
 from conans import ConanFile, tools, CMake
 import os
 
-# conan test_package msys/icu -k -t --build=never -o icu:msvc_platform=msys -e MSYS_ROOT=D:\dev\msys64
-
 class ICUTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
-    options = {"shared": [True, False],
-               "msvc_platform": ["visual_studio", "cygwin", "msys"],
-               "data_packaging": ["shared", "static", "files", "archive"],
-               "with_unit_tests": [True, False]}
-
-    default_options = "shared=False", \
-                      "msvc_platform=msys", \
-                      "data_packaging=archive", \
-                      "with_unit_tests=False"
+    options = {"shared": [True, False]}
+    default_options = "shared=False"
 
     def build(self):
         cmake = CMake(self)
@@ -33,3 +24,4 @@ class ICUTestConan(ConanFile):
         os.chdir(bin_dir)
         with tools.environment_append({"LD_LIBRARY_PATH": bin_dir, "DYLD_LIBRARY_PATH": bin_dir}):
             self.run(".{0}test_package".format(os.sep))
+
