@@ -26,7 +26,16 @@ if __name__ == "__main__":
     os.environ["CONAN_UPLOAD"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
     os.environ["CONAN_REMOTES"]="https://api.bintray.com/conan/conan-community/conan"
 
-    builder = ConanMultiPackager(args="--build missing")
+    reference = "{0}/{1}".format(name, version)
+
+    builder = ConanMultiPackager(args="--build missing",
+                                 username=username,
+                                 channel=channel,
+                                 reference=reference,
+                                 upload=os.environ["CONAN_UPLOAD"],
+                                 remotes=os.environ["CONAN_UPLOAD"],
+                                 upload_only_when_stable=True,
+                                 stable_branch_pattern="stable/*")
 
     if "CONAN_ICU_SHARED" in os.environ:
         conan_build_options.update({"icu:shared": True if strtobool(os.environ["CONAN_ICU_SHARED"]) else False})
