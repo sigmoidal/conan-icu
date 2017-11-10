@@ -26,7 +26,7 @@ On MacOS it has been tested with Apple's Clang.
 
 ### Basic setup
 
-    $ conan install icu/60.1@bincrafters/testing
+    $ conan install icu/60.1@sigmoidal/testing
 
 ### Project setup
 
@@ -56,7 +56,7 @@ This package has the following options useful for end-users:
 
 ## For Packagers: Publish this Package
 
-The example below shows the commands used to publish to bincrafters conan repository. 
+The example below shows the commands used to publish to sigmoidal conan repository. 
 To publish to your own conan respository (for example, after forking this git repository), 
 you will need to change the commands below accordingly.
 
