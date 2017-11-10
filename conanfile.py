@@ -14,23 +14,23 @@ import re
 #
 # To update the conanfile.py without rebuilding:
 #
-#    conan export icu/59.1@bincrafters/testing -k && conan package icu/59.1@bincrafters/testing addc9b54f567a693944ffcc56568c29b0d0926c8
+#    conan export icu/60.1@sigmoidal/testing -k && conan package icu/60.1@sigmoidal/testing addc9b54f567a693944ffcc56568c29b0d0926c8
 #
 # for creating a tgz:
 #
-#    conan upload --skip_upload icu/59.1@bincrafters/testing -p addc9b54f567a693944ffcc56568c29b0d0926c8
+#    conan upload --skip_upload icu/60.1@sigmoidal/testing -p addc9b54f567a693944ffcc56568c29b0d0926c8
 #
 # Create an ICU package using a Cygwin/MSVC static release built
 #   
-#    conan create bincrafters/testing -o icu:msvc_platform=cygwin -o icu:shared=False
+#    conan create sigmoidal/testing -o icu:msvc_platform=cygwin -o icu:shared=False
 #
 # Create an ICU package using a Cygwin/MSYS static debug built
 #   
-#    conan create bincrafters/testing -o icu:msvc_platform=cygwin -s icu:build_type=Debug -o icu:shared=False
+#    conan create sigmoidal/testing -o icu:msvc_platform=cygwin -s icu:build_type=Debug -o icu:shared=False
 #
 # Create an ICU package using a Cygwin/MSYS static debug built
 #   
-#    conan create bincrafters/testing
+#    conan create sigmoidal/testing
 #
 
 class IcuConan(ConanFile):

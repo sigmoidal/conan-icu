@@ -22,7 +22,7 @@ def usage():
 def main(target_os):
     name = "icu"
     version = "60.1"
-    channel = "sigmoidal/stable"
+    channel = "sigmoidal/testing"
     archs = [ "x86", "x86_64" ]
     build_types = ["Release", "Debug"]
     shared = [ True, False ]

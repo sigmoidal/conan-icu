@@ -30,11 +30,11 @@ environment:
         - CONAN_ICU_MSVC_PLATFORM: cygwin
           CONAN_ICU_SHARED: False
 
-        - CONAN_ICU_MSVC_PLATFORM: msys
-          CONAN_ICU_SHARED: True
+        #- CONAN_ICU_MSVC_PLATFORM: msys
+        #  CONAN_ICU_SHARED: True
 
-        - CONAN_ICU_MSVC_PLATFORM: msys
-          CONAN_ICU_SHARED: False
+        #- CONAN_ICU_MSVC_PLATFORM: msys
+        #  CONAN_ICU_SHARED: False
 
 # Enable for RDP
 #init:
