@@ -33,7 +33,7 @@ if __name__ == "__main__":
                                  channel=channel,
                                  reference=reference,
                                  upload=os.environ["CONAN_UPLOAD"],
-                                 remotes=os.environ["CONAN_UPLOAD"],
+                                 remotes=os.environ["CONAN_REMOTES"],
                                  upload_only_when_stable=True,
                                  stable_branch_pattern="stable/*")
 
