@@ -21,14 +21,15 @@ def usage():
     
 def main(target_os):
     name = "icu"
-    version = "59.1"
-    channel = "bincrafters/testing"
+    version = "60.1"
+    channel = "sigmoidal/stable"
     archs = [ "x86", "x86_64" ]
     build_types = ["Release", "Debug"]
-    win_runtimes = [ "MT", "MD" ]
     shared = [ True, False ]
     compiler_versions = [ "15", "14" ]
     msvc_platforms = [ "msys", "cygwin" ]
+
+    os.system('conan remote add sigmoidal "https://api.bintray.com/conan/sigmoidal/public-conan"')
 
     if target_os == 'win':
         for msvc_platform in msvc_platforms:
@@ -64,6 +65,9 @@ def main(target_os):
                                                                                                                                                                          msvc_platform=msvc_platform)
                             print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
                             os.system( cmd )
+
+                            os.system('conan upload {name}/{version}@{channel} --all -r sigmoidal'.format(name=name, version=channel, channel=channel))
+
                             
     elif target_os == 'linux':
     

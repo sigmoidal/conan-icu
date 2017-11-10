@@ -38,7 +38,7 @@ class IcuConan(ConanFile):
     version = "60.1"
     license="http://www.unicode.org/copyright.html#License"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications."
-    url = "https://github.com/bincrafters/conan-icu"
+    url = "https://github.com/sigmoidal/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
     data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,version.replace('.', '_'))
@@ -169,9 +169,10 @@ class IcuConan(ConanFile):
             self.copy("*", dst=lib_dir_dst, src=lib_dir_src, keep_path=True, symlinks=True)
 
             # lets remove .dlls from the lib dir, they are in bin/ in upstream releases.
-            for item in os.listdir(os.path.join(self.package_folder, lib_dir_dst)):
-                if item.endswith(".dll"):
-                    os.remove(os.path.join(self.package_folder, lib_dir_dst, item))
+            if os.path.exists(os.path.join(self.package_folder, lib_dir_dst)):
+                for item in os.listdir(os.path.join(self.package_folder, lib_dir_dst)):
+                    if item.endswith(".dll"):
+                        os.remove(os.path.join(self.package_folder, lib_dir_dst, item))
 
             self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
             self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
