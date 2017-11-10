@@ -1,5 +1,5 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/mm27s515gpx3io09/branch/testing/60.1?svg=true)](https://ci.appveyor.com/project/sigmoidal/conan-icu/branch/testing/60.1)
-[![Build Status](https://travis-ci.org/sigmoidal/conan-icu.svg?branch=testing%2F60.1)](https://travis-ci.org/sigmoidal/conan-icu)
+[![Build status](https://ci.appveyor.com/api/projects/status/mm27s515gpx3io09/branch/stable/60.1?svg=true)](https://ci.appveyor.com/project/sigmoidal/conan-icu/branch/stable/60.1)
+[![Build Status](https://travis-ci.org/sigmoidal/conan-icu.svg?branch=stable%2F60.1)](https://travis-ci.org/sigmoidal/conan-icu)
 [![License LGPL](https://img.shields.io/badge/license-LGPL%202.1-yellow.svg)](https://shields.io/)
 
 ## Conan recipe for IBM ICU.
@@ -26,14 +26,14 @@ On MacOS it has been tested with Apple's Clang.
 
 ### Basic setup
 
-    $ conan install icu/60.1@sigmoidal/testing
+    $ conan install icu/60.1@sigmoidal/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    icu/60.1@sigmoidal/testing
+    icu/60.1@sigmoidal/stable
 
     [generators]
     txt
@@ -65,7 +65,7 @@ you will need to change the commands below accordingly.
 The following command both runs all the steps of the conan file, and publishes the package to the local system cache.  
 This includes downloading dependencies from "build_requires" and "requires" , and then running the build() method. 
 
-    $ conan create sigmoidal/testing
+    $ conan create sigmoidal/stable
 
 ## Add Remote
 
@@ -73,7 +73,7 @@ This includes downloading dependencies from "build_requires" and "requires" , an
 
 ## Upload
 
-    $ conan upload icu/60.1@sigmoidal/testing --all -r sigmoidal
+    $ conan upload icu/60.1@sigmoidal/stable --all -r sigmoidal
 
 ### License
 [IBM ICU](http://www.unicode.org/copyright.html#License)
