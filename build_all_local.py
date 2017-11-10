@@ -66,7 +66,7 @@ def main(target_os):
                             print("[{os}] {cmdstr}".format(os=target_os, cmdstr=" ".join(cmd.split())))
                             os.system( cmd )
 
-                            os.system('conan upload {name}/{version}@{channel} --all -r sigmoidal'.format(name=name, version=channel, channel=channel))
+                            os.system('conan upload {name}/{version}@{channel} --all -r sigmoidal'.format(name=name, version=version, channel=channel))
 
                             
     elif target_os == 'linux':
