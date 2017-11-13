@@ -1,3 +1,50 @@
+# not found
+
+[![travis Status](https://travis-ci.org/not found/not found.svg?branch=master)](https://travis-ci.org/not found/not found) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/not found/not found/not found?branch=master&svg=true)](https://ci.appveyor.com/project/not found/not found) [![Go Report Card](https://goreportcard.com/badge/not found/not found/not found)](https://goreportcard.com/report/not found/not found/not found) [![GoDoc](https://godoc.org/not found/not found/not found?status.svg)](http://godoc.org/not found/not found/not found) [![<nil> License](http://img.shields.io/badge/License-<nil>-blue.svg)](LICENSE)
+
+
+foo
+
+master
+
+not found
+not found
+not found
+not found
+not found
+not found
+master
+
+[![Go Report Card](https://goreportcard.com/badge/not found/not found/not found)](https://goreportcard.com/report/not found/not found/not found) [![GoDoc](https://godoc.org/not found/not found/not found?status.svg)](http://godoc.org/not found/not found/not found)
+
+
+
+# TOC
+- [Install](#install)
+  - [go](#go)
+- [Conan recipe for IBM ICU.](#conan-recipe-for-ibm-icu)
+  - [Features](#features)
+- [For Users: Use this package](#for-users-use-this-package)
+  - [Basic setup](#basic-setup)
+  - [Project setup](#project-setup)
+  - [Package Options](#package-options)
+- [For Packagers: Publish this Package](#for-packagers-publish-this-package)
+- [Build and package ](#build-and-package-)
+- [Add Remote](#add-remote)
+- [Upload](#upload)
+  - [License](#license)
+
+# Install
+
+Check the [release page](https://not found/releases)!
+
+#### go
+```sh
+go get not found/not found/not found
+```
+
+
+
 [![Build status](https://ci.appveyor.com/api/projects/status/mm27s515gpx3io09/branch/stable/60.1?svg=true)](https://ci.appveyor.com/project/sigmoidal/conan-icu/branch/stable/60.1)
 [![Build Status](https://travis-ci.org/sigmoidal/conan-icu.svg?branch=stable%2F60.1)](https://travis-ci.org/sigmoidal/conan-icu)
 [![License LGPL](https://img.shields.io/badge/license-LGPL%202.1-yellow.svg)](https://shields.io/)
@@ -21,6 +68,7 @@ On Linux it has been tested with GCC 5.x and 6.x.
 On MacOS it has been tested with Apple's Clang.
 
 
+not found
 
 ## For Users: Use this package
 

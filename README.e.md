@@ -59,6 +59,7 @@ On Linux it has been tested with GCC 5.x and 6.x.
 On MacOS it has been tested with Apple's Clang.
 
 
+{{.Name}}
 
 ## For Users: Use this package
 
