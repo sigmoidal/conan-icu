@@ -62,4 +62,4 @@ The following command both runs all the steps of the conan file, and publishes t
 NOTE: The conan recipe license applies only to the files of this recipe, which can be used to build and package icu.
 It does *not* in any way apply or is related to the actual software being packaged.
 
-[LICENSE](https://github.com/sigmoidal/conan-icu/blob/stable/60.1/LICENSE.md)
+[LICENSE](https://github.com/sigmoidal/conan-icu/blob/stable/60.2/LICENSE.md)
