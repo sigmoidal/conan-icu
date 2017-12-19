@@ -185,7 +185,7 @@ class IcuConan(ConanFile):
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
                 
-        if self.settings.compiler == "gcc":
+        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
             self.cpp_info.cppflags = ["-std=c++11"]
 
 
