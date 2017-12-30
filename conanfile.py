@@ -218,15 +218,7 @@ class IcuConan(ConanFile):
         #                '/cygdrive/\\1\\2',
         #                self.cfg['output_dir'],
         #                flags=re.IGNORECASE).replace('\\', '/')
-        if self.settings.os == 'Windows' and self.settings.compiler != 'Visual Studio':
-            self.cfg['platform'] = 'MinGW'
-            if self.settings.arch == 'x86':
-                MINGW_CHOST = 'i686-w64-mingw32'
-            else:
-                MINGW_CHOST = 'x86_64-w64-mingw32'
 
-            self.cfg['general_opts'] = '--build={MINGW_CHOST} ' \
-                                       '--host={MINGW_CHOST} '.format(MINGW_CHOST=MINGW_CHOST) + self.cfg['general_opts']
 
         config_cmd = "../source/runConfigureICU {enable_debug} " \
                      "{platform} {host} {lib_arch_bits} {outdir} " \
@@ -292,6 +284,14 @@ class IcuConan(ConanFile):
                 self.cfg['platform'] = 'MacOSX'
             if self.settings.os == 'Windows':
                 self.cfg['platform'] = 'MinGW'
+
+                if self.settings.arch == 'x86':
+                    MINGW_CHOST = 'i686-w64-mingw32'
+                else:
+                    MINGW_CHOST = 'x86_64-w64-mingw32'
+
+                self.cfg['host'] = '--build={MINGW_CHOST} ' \
+                                   '--host={MINGW_CHOST} '.format(MINGW_CHOST=MINGW_CHOST)
 
             os.mkdir(self.cfg['build_dir'])
 
