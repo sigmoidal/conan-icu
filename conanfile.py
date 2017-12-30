@@ -14,8 +14,6 @@
 from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
-import shutil
-import re
 
 class IcuConan(ConanFile):
     name = "icu"
@@ -50,6 +48,12 @@ class IcuConan(ConanFile):
             'enable_static': '', 
             'data_packaging': '', 
             'general_opts': '' }
+
+    def build_requirements(self):
+        if self.settings.os == "Windows":
+            self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
+            if self.settings.compiler != "Visual Studio":
+                self.build_requires("mingw_installer/1.0@conan/stable")
 
     def source(self):
         self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
