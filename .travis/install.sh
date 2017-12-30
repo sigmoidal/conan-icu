@@ -19,7 +19,8 @@ if [[ "$(uname -s)" == 'Darwin' ]]; then
     pyenv activate conan
 fi
 
-pip install pyOpenSSL ndg-httpsclient pyasn1
+pip install -U pip
+pip install -U pyOpenSSL ndg-httpsclient pyasn1
 pip install conan --upgrade
 pip install conan_package_tools
 
