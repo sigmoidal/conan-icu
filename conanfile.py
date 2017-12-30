@@ -57,7 +57,7 @@ class IcuConan(ConanFile):
 
     def configure(self):
         if self.settings.compiler == "gcc":
-            self.compiler.libcxx = 'libstdc++11'
+            self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
         self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
