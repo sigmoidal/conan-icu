@@ -298,7 +298,7 @@ class IcuConan(ConanFile):
             config_cmd = self.build_config_cmd()
 
             # with tools.environment_append(env_build.vars):
-            self.run("cd {builddir} && bash {config_cmd}".format(builddir=self.cfg['build_dir'],
+            self.run("cd {builddir} && bash -c '{config_cmd}'".format(builddir=self.cfg['build_dir'],
                                                                  config_cmd=config_cmd))
 
             os.system("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
