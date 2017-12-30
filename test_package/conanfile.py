@@ -4,12 +4,9 @@ import os
 class ICUTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
 
     def build(self):
         cmake = CMake(self)
-        cmake.verbose = True
         cmake.configure()
         cmake.build()
 
