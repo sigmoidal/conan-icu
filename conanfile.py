@@ -59,9 +59,6 @@ class IcuConan(ConanFile):
         if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
             self.settings.compiler.libcxx = 'libstdc++11'
 
-        if self.settings.compiler.libcxx == "libstdc++":
-            raise Exception("This package is only compatible with libstdc++11")
-
     def source(self):
         self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
         tools.get("{0}.tgz".format(self.source_url))
